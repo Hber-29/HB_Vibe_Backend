@@ -1,0 +1,48 @@
+# --- Maven / Build ---
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+hs_err_pid*
+
+# --- IDEs (IntelliJ IDEA, Eclipse/STS, NetBeans, VS Code) ---
+.idea/
+*.iws
+*.iml
+*.ipr
+.shelf/
+
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+.vscode/
+
+# --- Operating System Files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# --- Logs & Environment ---
+*.log
+*.sqlite
+logs/
+.env

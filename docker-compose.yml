@@ -1,0 +1,112 @@
+version: '3.8'
+name: hb-vibe-system
+networks:
+  hb_vibe_network:
+    driver: bridge
+
+services:
+  # ==========================================
+  # 1. USER SERVICE DATABASE
+  # ==========================================
+  user-db:
+    image: postgres:15
+    container_name: hb_user_db
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+    ports:
+      - "5434:5432" # Ánh xạ ra port 5434 trên máy thật để code Spring Boot kết nối
+    networks:
+      - hb_vibe_network
+    restart: unless-stopped
+
+  # ==========================================
+  # 2. KEYCLOAK (AUTH & IDENTITY)
+  # ==========================================
+  keycloak-db:
+    image: postgres:15
+    container_name: hb_keycloak_db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    networks:
+      - hb_vibe_network
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.0
+    container_name: hb_keycloak
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080" # Truy cập giao diện quản trị tại localhost:8080
+    depends_on:
+      - keycloak-db
+    networks:
+      - hb_vibe_network
+    restart: unless-stopped
+
+  # ==========================================
+  # 3. KONG API GATEWAY
+  # ==========================================
+  kong-db:
+    image: postgres:13
+    container_name: hb_kong_db
+    environment:
+      POSTGRES_DB: kong
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: kong
+    ports:
+      - "5433:5432"
+    networks:
+      - hb_vibe_network
+    restart: unless-stopped
+
+  # Container chạy một lần để khởi tạo cấu trúc bảng cho Kong
+  kong-migrations:
+    image: kong:3.4.0
+    container_name: hb_kong_migrations
+    command: kong migrations bootstrap
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong
+    depends_on:
+      - kong-db
+    networks:
+      - hb_vibe_network
+
+  kong:
+    image: kong:3.4.0
+    container_name: hb_kong_gateway
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001, 0.0.0.0:8444 ssl
+    ports:
+      - "8000:8000" # Port cho Frontend gọi API vào
+      - "8443:8443"
+      - "8001:8001" # Port để dùng Postman cấu hình Route cho Kong
+    depends_on:
+      - kong-db
+      - kong-migrations
+    networks:
+      - hb_vibe_network
+    restart: unless-stopped
