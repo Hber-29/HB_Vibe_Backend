@@ -35,7 +35,7 @@ public class UserProfile {
     String firstName;
     @Column(name="last_name", nullable = false,length = 50)
     String lastName;
-    @Column(name="phone_number", nullable = false,length = 20)
+    @Column(name="phone_number", nullable = false,unique = true,length = 20)
     String phoneNumber;
     // ép kiểu từ String 256vkys tự thành TEXT HƠN 65 NGHÌN KÝ TỰ.
     @Column(name = "avatar_url", columnDefinition = "TEXT")

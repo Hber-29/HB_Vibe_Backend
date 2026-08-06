@@ -1,0 +1,92 @@
+_format_version: "3.0"
+
+services:
+  # ==========================================
+  # 1. USER SERVICE (Backend Spring Boot)
+  # ==========================================
+  - name: hb-user-service
+    url: http://host.docker.internal:8081
+    routes:
+      # 🟢 ROUTE 1: PUBLIC (Không cần Token)
+      # - Phải khai báo đường dẫn dài để Kong ưu tiên khớp trước.
+      - name: public-user-route
+        paths:
+          - /user/register
+
+
+        strip_path: false
+        # (Không khai báo plugin gì ở đây cả -> Ai cũng vào được)
+
+      # 🔴 ROUTE 2: PRIVATE (Bắt buộc có Token)
+      # - Bắt tất cả các API còn lại bắt đầu bằng /user
+      - name: private-user-route
+        paths:
+          - /user
+          - /user/allUsers
+          - /user/myUser
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp  # Bắt buộc Token phải còn hạn (không bị expired)
+              # Mặc định Kong sẽ tìm trường 'iss' (Issuer) trong Token để biết chìa khóa nào để mở.
+
+  # ==========================================
+  # 2. KEYCLOAK SERVICE (Dành cho Frontend gọi lấy Token)
+  # ==========================================
+  - name: hb-keycloak-service
+    url: http://keycloak:8080
+    routes:
+      # 🟢 ROUTE PUBLIC: Để Frontend có thể gọi vào màn hình đăng nhập/xác thực
+      - name: keycloak-route
+        paths:
+          - /realms
+          - /admin/realms
+
+        strip_path: false
+
+# ==========================================
+# 3. CẤU HÌNH CHÌA KHÓA CÔNG KHAI (PUBLIC KEY)
+# ==========================================
+consumers:
+  # Tạo một danh tính ảo trên Kong để đại diện cho Keycloak
+  - username: keycloak-issuer
+
+jwt_secrets:
+  # Cấp cho danh tính ảo này cái "chìa khóa" (Public Key) lấy từ Keycloak
+  - consumer: keycloak-issuer
+    algorithm: RS256
+    key: http://localhost:8080/realms/HBvibe_Web
+
+    # DÁN PUBLIC KEY TỪ MÀN HÌNH QUẢN TRỊ KEYCLOAK VÀO ĐÂY:
+    # (Vào Keycloak -> Realm Settings -> Keys -> RS256 -> Nút Public Key)
+    rsa_public_key: |
+      -----BEGIN PUBLIC KEY-----
+      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAl80XfBweAgeBWBIfwnRb8LmYYnYkEd95TypXwDKd6oqysUjEc+94ZKRfwyuAQ4gbzrhw9VD13ZS+hPhuPlAHHN+tx3GtFrTQKk9tZIUfFW1Z1LjTOTXLy5IxOUhBJl0kQwtu+L0jEDFBMUTEDulM63aKsZ+7Npe0WQfvGuX/z4/RLTLE0MY3EYHrBdQNQJxdJ7iG5ONExV5jUYuQ9icTFH/WUPHr6rGcNr8t/HBApryPLHRhyL0VwqZb3lDhGHYphEGfxTc8zNcZb2v4282UW1oFGJdU01xP2XGR2o8WzXTwcJG1ceaSWc65WvkQ4WVMVFwMY8KYWERdXCvo+dO7nQIDAQAB
+      -----END PUBLIC KEY-----
+
+plugins:
+  - name: cors
+    config:
+      origins:
+        - http://localhost:3000  # Cho phép Frontend ở cổng 3000 truy cập
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Accept-Version
+        - Content-Length
+        - Content-MD5
+        - Content-Type
+        - Date
+        - Authorization
+      exposed_headers:
+        - Authorization
+      credentials: true
+      max_age: 3600

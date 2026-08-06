@@ -5,6 +5,8 @@ import com.hbvibe.user.dto.identity.TokenExchangeParam;
 import com.hbvibe.user.dto.identity.UserCreationParam;
 import com.hbvibe.user.dto.request.RegistrationRequest;
 import com.hbvibe.user.dto.response.ProfileResponse;
+import com.hbvibe.user.exception.AppException;
+import com.hbvibe.user.exception.ErrorCode;
 import com.hbvibe.user.exception.ErrorNormalizer;
 import com.hbvibe.user.mapper.ProfileMapper;
 import com.hbvibe.user.repository.IdentityClient;
@@ -15,6 +17,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -37,8 +40,25 @@ public class ProfileService {
     @NonFinal
     String clientSerect;
 
+    public List<ProfileResponse> getAllUsers(){
+        var userProfiles= profileRepository.findAll();
+        return userProfiles.stream().map(profileMapper::toProfileResponse).toList();
+
+    }
+
+    public ProfileResponse getMyUserProfile(){
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+        var myProfile =  profileRepository.findByKeycloakId(userId);
+        return profileMapper.toProfileResponse(myProfile);
+    }
+
     public ProfileResponse register(RegistrationRequest registrationRequest) {
+        log.info("Dữ liệu nhận từ Frontend: {}", registrationRequest);
         try {
+            if (profileRepository.existsByPhoneNumber(registrationRequest.getPhoneNumber())) {
+                throw new AppException(ErrorCode.PHONE_NUMBER_ALREADY_EXISTS);
+            }
             // create  account  in keycloak
             //Exchange client token
             var token = identityClient.exchangeToken(TokenExchangeParam.builder()

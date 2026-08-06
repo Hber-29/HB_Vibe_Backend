@@ -19,9 +19,9 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/devteria
+          issuer-uri: http://localhost:8080/realms/HBvibe_Web
 idp:
   url: http://localhost:8080
   client-id: HBvibe_web_backend
-  client-secret: LoyUWYLqwJ2gt91JdIYd2ZiSkARTurdU
+  client-secret: Fsr9ii9HLX70nWmj9fus2N4IT5VEZQmB
 

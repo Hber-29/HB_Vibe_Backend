@@ -57,44 +57,14 @@ services:
     restart: unless-stopped
 
   # ==========================================
-  # 3. KONG API GATEWAY
+  # 3. KONG API GATEWAY (Chế độ DB-less)
   # ==========================================
-  kong-db:
-    image: postgres:13
-    container_name: hb_kong_db
-    environment:
-      POSTGRES_DB: kong
-      POSTGRES_USER: kong
-      POSTGRES_PASSWORD: kong
-    ports:
-      - "5433:5432"
-    networks:
-      - hb_vibe_network
-    restart: unless-stopped
-
-  # Container chạy một lần để khởi tạo cấu trúc bảng cho Kong
-  kong-migrations:
-    image: kong:3.4.0
-    container_name: hb_kong_migrations
-    command: kong migrations bootstrap
-    environment:
-      KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-db
-      KONG_PG_USER: kong
-      KONG_PG_PASSWORD: kong
-    depends_on:
-      - kong-db
-    networks:
-      - hb_vibe_network
-
   kong:
     image: kong:3.4.0
     container_name: hb_kong_gateway
     environment:
-      KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-db
-      KONG_PG_USER: kong
-      KONG_PG_PASSWORD: kong
+      KONG_DATABASE: "off" # Tắt database
+      KONG_DECLARATIVE_CONFIG: "/etc/kong/kong.yml" # Chỉ định đường dẫn đọc file
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
@@ -103,10 +73,9 @@ services:
     ports:
       - "8000:8000" # Port cho Frontend gọi API vào
       - "8443:8443"
-      - "8001:8001" # Port để dùng Postman cấu hình Route cho Kong
-    depends_on:
-      - kong-db
-      - kong-migrations
+      - "8001:8001" # Port Admin API
+    volumes:
+      - ./kong.yml:/etc/kong/kong.yml # Đẩy file từ máy tính vào trong Docker
     networks:
       - hb_vibe_network
     restart: unless-stopped

@@ -1,5 +1,6 @@
 package com.hbvibe.user.dto.response;
 
+import com.hbvibe.user.entity.Gender;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,7 +20,7 @@ public class ProfileResponse {
     String username;
     String firstName;
     String lastName;
+    Gender gender;
     String phoneNumber;
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     LocalDate birthDate;
 }
