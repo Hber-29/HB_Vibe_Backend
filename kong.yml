@@ -24,6 +24,9 @@ services:
           - /user
           - /user/allUsers
           - /user/myUser
+          - /user/create_address
+          - /user/update_user
+          - /user/update_address
         strip_path: false
         plugins:
           - name: jwt

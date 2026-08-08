@@ -30,10 +30,10 @@ public class UserStyleProfile {
     @Column(name = "weight_kg", precision = 5, scale = 2)
     BigDecimal weightKg;
     @Column(name = "body_shape", length = 50)
-     String bodyShape;
+    String bodyShape;
 
     @Column(name = "skin_tone", length = 50)
-     String skinTone;
+    String skinTone;
 
     // Ánh xạ thành kiểu JSONB trong PostgreSQL
     @JdbcTypeCode(SqlTypes.JSON)

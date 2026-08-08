@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.nio.file.AccessDeniedException;
 import java.util.Map;
@@ -71,6 +72,7 @@ public class GlobalExceptionHandler {
 
         }
 
+
         ApiResponse apiResponse = new ApiResponse();
 
         apiResponse.setCode(errorCode.getCode());
@@ -78,6 +80,19 @@ public class GlobalExceptionHandler {
                 Objects.nonNull(attributes)
                         ? mapAttribute(errorCode.getMessage(), attributes)
                         : errorCode.getMessage());
+
+        return ResponseEntity.badRequest().body(apiResponse);
+    }
+
+    // hàm bắt lỗi của database khi dữ liẹu đầu vào bị null
+    @ExceptionHandler(value = DataIntegrityViolationException.class)
+    ResponseEntity<ApiResponse> handlingDataIntegrityViolationException(DataIntegrityViolationException exception) {
+        log.error("DataIntegrityViolationException: ", exception);
+
+        ApiResponse apiResponse = new ApiResponse();
+
+        apiResponse.setCode(ErrorCode.VALUE_NULL.getCode());
+        apiResponse.setMessage(ErrorCode.VALUE_NULL.getMessage());
 
         return ResponseEntity.badRequest().body(apiResponse);
     }

@@ -16,6 +16,8 @@ public enum ErrorCode {
     USER_EXISTED(1009, "Username existed, please choose another one", HttpStatus.BAD_REQUEST),
     USERNAME_IS_MISSING(1010, "Please enter username", HttpStatus.BAD_REQUEST),
     PHONE_NUMBER_ALREADY_EXISTS(1011, "Phone number already exists", HttpStatus.BAD_REQUEST),
+    USERID_NOT_EXISTS(1012, "Userid not exists", HttpStatus.BAD_REQUEST),
+    VALUE_NULL(1013, "Value is null", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
