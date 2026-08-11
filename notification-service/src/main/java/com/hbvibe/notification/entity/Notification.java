@@ -1,7 +1,7 @@
 package com.hbvibe.notification.entity;
 
 import com.hbvibe.event.dto.Channel;
-import com.hbvibe.notification.dto.request.Recepient;
+import com.hbvibe.notification.dto.request.email.Recepient;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;

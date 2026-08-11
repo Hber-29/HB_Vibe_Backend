@@ -1,6 +1,6 @@
 package com.hbvibe.event.dto;
 
-import com.hbvibe.notification.dto.request.Recepient;
+import com.hbvibe.notification.dto.request.email.Recepient;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

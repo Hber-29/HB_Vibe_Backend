@@ -1,8 +1,8 @@
 package com.hbvibe.notification.controller;
 
 import com.hbvibe.event.dto.NotificationEvent;
-import com.hbvibe.notification.service.EmailService;
 import com.hbvibe.notification.service.NotificationService;
+import com.hbvibe.notification.service.channel.EmailChannelService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 public class NotificationController {
-    EmailService emailService;
+    EmailChannelService emailChannelService;
     NotificationService notificationService;
 
     @KafkaListener(topics = "notification-delivery"
@@ -25,7 +25,7 @@ public class NotificationController {
        log.info("Message received: {}", event);
 
        var notificationResponse=notificationService.notificcation(event);
-       emailService.sendEmail(event);
+       emailChannelService.sendEmail(event);
        return notificationResponse;
     }
 

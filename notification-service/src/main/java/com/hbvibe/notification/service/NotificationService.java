@@ -1,7 +1,7 @@
 package com.hbvibe.notification.service;
 
 import com.hbvibe.event.dto.NotificationEvent;
-import com.hbvibe.notification.dto.request.Recepient;
+import com.hbvibe.notification.dto.request.email.Recepient;
 import com.hbvibe.notification.entity.Notification;
 import com.hbvibe.notification.entity.Status;
 import com.hbvibe.notification.repository.NotificationRepository;

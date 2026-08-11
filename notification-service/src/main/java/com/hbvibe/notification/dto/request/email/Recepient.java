@@ -1,4 +1,4 @@
-package com.hbvibe.notification.dto.request;
+package com.hbvibe.notification.dto.request.email;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;

@@ -1,13 +1,13 @@
-package com.hbvibe.notification.service;
+package com.hbvibe.notification.service.channel;
 
 import com.hbvibe.event.dto.NotificationEvent;
-import com.hbvibe.notification.dto.request.EmailRequest;
-import com.hbvibe.notification.dto.request.Recepient;
-import com.hbvibe.notification.dto.request.Sender;
+import com.hbvibe.notification.client.BrevoClient;
+import com.hbvibe.notification.dto.request.email.EmailRequest;
+import com.hbvibe.notification.dto.request.email.Recepient;
+import com.hbvibe.notification.dto.request.email.Sender;
 import com.hbvibe.notification.dto.response.EmailResponse;
 import com.hbvibe.notification.exception.AppException;
 import com.hbvibe.notification.exception.ErrorCode;
-import com.hbvibe.notification.repository.httpClient.EmailClient;
 import feign.FeignException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +23,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class EmailService {
-     EmailClient emailClient;
+public class EmailChannelService {
+     BrevoClient brevoClient;
      @Value("${spring.notification.email.brevo-apikey}")
      @NonFinal
      String apiKey;
@@ -45,7 +45,7 @@ public class EmailService {
                 .htmlContent(event.getBody())
                 .build();
         try {
-            return emailClient.sendEmail(apiKey, emailRequest);
+            return brevoClient.sendEmail(apiKey, emailRequest);
         }catch (FeignException e){
             log.error("Brevo error: status={}, body={}",
                     e.status(),
