@@ -1,5 +1,8 @@
 package com.hbvibe.user.service;
 
+import com.hbvibe.event.dto.Channel;
+import com.hbvibe.event.dto.NotificationEvent;
+import com.hbvibe.event.dto.Recepient;
 import com.hbvibe.user.dto.identity.Credential;
 import com.hbvibe.user.dto.identity.TokenExchangeParam;
 import com.hbvibe.user.dto.identity.UserCreationParam;
@@ -24,12 +27,14 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -44,6 +49,7 @@ public class ProfileService {
     IdentityClient identityClient;
     ProfileMapper profileMapper;
     private final UserAddressRepository userAddressRepository;
+    KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${idp.client-id}")
     @NonFinal
@@ -135,6 +141,38 @@ public class ProfileService {
                             )
                             .build()
             );
+
+//             publish message to kafka
+            NotificationEvent notificationEvent = NotificationEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .channel(Channel.EMAIL)
+                    .recipient(List.of(new Recepient(registrationRequest.getUsername()
+                            ,registrationRequest.getEmail())))
+                    .templateCode(1)
+                    .param(Map.of(
+                                    "username", registrationRequest.getUsername(),
+                                    "email", registrationRequest.getEmail(),
+                                    "gender", registrationRequest.getGender()
+                    ))
+                    .subject("Wecome to HBvibe")
+                    .body("Hello " + registrationRequest.getUsername())
+                    .timestamp(System.currentTimeMillis())
+                    .build();
+            kafkaTemplate.send("notification-delivery", notificationEvent)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.error(" Gửi Kafka thất bại", ex);
+                        } else {
+                            log.info(
+                                    " Gửi Kafka thành công: topic={}, partition={}, offset={}",
+                                    result.getRecordMetadata().topic(),
+                                    result.getRecordMetadata().partition(),
+                                    result.getRecordMetadata().offset()
+                            );
+                        }
+                    });
+
+
 
             String keyCloakId= extractUserId(creationResponse);
             log.info("keyCloakId {}", keyCloakId);

@@ -49,6 +49,35 @@ services:
 
         strip_path: false
 
+
+
+  # ==========================================
+  # 1. NOTIFICGATION SERVICE (Backend Spring Boot)
+  # ==========================================
+  - name: hb-notification-service
+    url: http://host.docker.internal:8082
+    routes:
+      - name: public-notification-route
+        paths:
+          - /notification/send/email
+
+        strip_path: false
+
+      - name: private-notification-route
+        paths:
+          - /notification
+
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+
+
+
+
+
 # ==========================================
 # 3. CẤU HÌNH CHÌA KHÓA CÔNG KHAI (PUBLIC KEY)
 # ==========================================
