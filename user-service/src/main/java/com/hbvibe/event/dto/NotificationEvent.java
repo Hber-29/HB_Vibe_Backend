@@ -13,6 +13,7 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class NotificationEvent {
      String eventId;
+     String userId;
      Long timestamp;
      Channel channel;
      List <Recepient>recipient;

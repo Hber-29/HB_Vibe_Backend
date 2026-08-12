@@ -15,6 +15,7 @@ import java.util.Map;
 public class NotificationEvent {
     // 1. Thông tin Metadata (Theo dõi hệ thống)
      String eventId;     // VD: "uuid-1234-..."
+     String userId; // id của user trong keycloak
      Long timestamp;     // Thời gian bắn event
 
     // 2. Thông tin Định tuyến

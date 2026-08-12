@@ -21,6 +21,7 @@ public class Notification {
     @Id
     private String id;
     String eventId;
+    String userId;
     Long timestamp;
     Channel channel;
     List<Recepient> recipient;

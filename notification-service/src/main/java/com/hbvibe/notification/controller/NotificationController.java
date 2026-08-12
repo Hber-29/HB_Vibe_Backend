@@ -16,17 +16,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 public class NotificationController {
-    EmailChannelService emailChannelService;
     NotificationService notificationService;
 
     @KafkaListener(topics = "notification-delivery"
             ,groupId = "notification-group-test")
-    public ResponseEntity<?> listen(NotificationEvent event){
+    public void listen(NotificationEvent event){
        log.info("Message received: {}", event);
 
-       var notificationResponse=notificationService.notificcation(event);
-       emailChannelService.sendEmail(event);
-       return notificationResponse;
+       notificationService.processNotification(event);
+
+
     }
 
 }

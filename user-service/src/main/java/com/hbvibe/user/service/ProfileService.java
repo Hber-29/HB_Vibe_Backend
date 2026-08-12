@@ -143,8 +143,12 @@ public class ProfileService {
             );
 
 //             publish message to kafka
+            // lấy ra keycloakId(userId)
+            String keyCloakId = extractUserId(creationResponse);
+            log.info("keyCloakId: {}", keyCloakId);
             NotificationEvent notificationEvent = NotificationEvent.builder()
                     .eventId(UUID.randomUUID().toString())
+                    .userId(keyCloakId)
                     .channel(Channel.EMAIL)
                     .recipient(List.of(new Recepient(registrationRequest.getUsername()
                             ,registrationRequest.getEmail())))
@@ -173,9 +177,6 @@ public class ProfileService {
                     });
 
 
-
-            String keyCloakId= extractUserId(creationResponse);
-            log.info("keyCloakId {}", keyCloakId);
             var userProfile= profileMapper.toUserProfile(registrationRequest);
             userProfile.setKeycloakId(keyCloakId);
             //khởi tạo bảng userProfileStyle
