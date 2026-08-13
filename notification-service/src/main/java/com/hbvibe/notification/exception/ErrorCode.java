@@ -13,7 +13,8 @@ public enum ErrorCode {
     UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
     VALUE_NULL(1008, "Value is null", HttpStatus.BAD_REQUEST),
-    CANNOT_SEND_EMAIL(1009,"Can't send email", HttpStatus.BAD_REQUEST)
+    CANNOT_SEND_EMAIL(1009,"Can't send email", HttpStatus.BAD_REQUEST),
+    CANNOT_DELETE_FCMTOKEN(1010,"cannot delete fcmtoken", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

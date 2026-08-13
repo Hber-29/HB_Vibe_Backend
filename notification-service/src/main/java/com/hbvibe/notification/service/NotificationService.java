@@ -5,6 +5,7 @@ import com.hbvibe.notification.dto.request.email.Recepient;
 import com.hbvibe.notification.dto.request.push.PushNotificationRequest;
 import com.hbvibe.notification.entity.Notification;
 import com.hbvibe.notification.entity.Status;
+import com.hbvibe.notification.repository.DeviceTokenRepository;
 import com.hbvibe.notification.repository.NotificationRepository;
 import com.hbvibe.notification.service.channel.EmailChannelService;
 import com.hbvibe.notification.service.channel.FirebasePushService;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ public class NotificationService {
     NotificationRepository notificationRepository;
     EmailChannelService emailChannelService;
     FirebasePushService firebasePushService;
+    DeviceTokenRepository deviceTokenRepository;
 
     public void processNotification(NotificationEvent event) {
         try {
@@ -71,19 +75,31 @@ public class NotificationService {
                     break;
 
                 case "PUSH":
-                    // Lấy FCM Token từ Map param (do các service khác truyền sang)
-                    String targetToken = (event.getParam() != null && event.getParam().containsKey("fcmToken"))
-                            ? event.getParam().get("fcmToken").toString()
-                            : null;
+                    // 2.1 TỰ ĐỘNG TÌM FCM TOKEN TỪ DATABASE THÔNG QUA USER_ID
+                    var userDeviceOpt = deviceTokenRepository.findByUserId(event.getUserId());
 
-                    if (targetToken == null || targetToken.trim().isEmpty()) {
-                        log.warn("Bỏ qua gửi PUSH vì không tìm thấy fcmToken cho User: {}", event.getUserId());
+                    // Nếu user không tồn tại hoặc mảng Token rỗng -> Bỏ qua
+                    if (userDeviceOpt.isEmpty() || userDeviceOpt.get().getFcmTokens().isEmpty()) {
+                        log.warn("Bỏ qua gửi PUSH vì user {} không có FCM Token nào đang hoạt động.", event.getUserId());
                         break;
+                    }
+
+                    // 2.2 TRÍCH XUẤT RA MỘT LIST<STRING> CHỨA CÁC TOKEN
+                    List<String> targetTokens = userDeviceOpt.get().getFcmTokens().stream()
+                            .map(tokenInfo -> tokenInfo.getToken())
+                            .toList();
+
+                    // 2.3 CHUYỂN ĐỔI PARAM (NẾU CÓ) THÀNH DATA MAP CHO FIREBASE
+                    // Firebase yêu cầu Map<String, String>, trong khi param của event có thể là Map<String, Object>
+                    Map<String, String> pushData = null;
+                    if (event.getParam() != null) {
+                        pushData = event.getParam().entrySet().stream()
+                                .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())));
                     }
 
                     // Đóng gói DTO dành riêng cho Firebase
                     PushNotificationRequest pushReq = PushNotificationRequest.builder()
-                            .targetToken(targetToken)
+                            .targetToken(targetTokens)
                             .title(event.getSubject())
                             .body(event.getBody())
                             .data(null) // Có thể truyền thêm deep link vào đây nếu cần
