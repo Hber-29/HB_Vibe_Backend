@@ -10,7 +10,7 @@ services:
   # ==========================================
   user-db:
     image: postgres:15
-    container_name: hb_user_db
+    container_name: hb_vibe_postgres
     environment:
       POSTGRES_DB: user_db
       POSTGRES_USER: root
@@ -119,3 +119,41 @@ services:
     networks:
       - hb_vibe_network
     restart: unless-stopped
+
+  # ==========================================
+  # 6. REDIS (CACHE CHO PRODUCT & CART)
+  # ==========================================
+  redis:
+    image: redis:alpine
+    container_name: hb_vibe_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hb_vibe_network
+    restart: unless-stopped
+
+  # ==========================================
+  # 7. MINIO (OBJECT STORAGE LƯU ẢNH)
+  # ==========================================
+  minio:
+    image: minio/minio
+    container_name: hb_vibe_minio
+    ports:
+      - "9000:9000" # Port API cho Spring Boot gọi
+      - "9001:9001" # Port giao diện web Console
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=admin12345
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - hb_vibe_network
+    restart: unless-stopped
+
+# KHAI BÁO VOLUME LƯU TRỮ TRÁNH MẤT DATA KHI TẮT MÁY
+volumes:
+  redis_data:
+  minio_data:

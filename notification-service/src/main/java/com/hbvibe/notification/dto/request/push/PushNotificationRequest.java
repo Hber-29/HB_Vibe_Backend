@@ -15,7 +15,7 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PushNotificationRequest {
     List<String> targetToken; // FCM Token của thiết bị
-    String title;       // Tiêu đề thông báo
-    String body;        // Nội dung chi tiết
+    String title;             // Tiêu đề thông báo
+    String body;              // Nội dung chi tiết
     Map<String, String> data; // Dữ liệu ẩn (ví dụ: { "orderId": "123" } để click vào mở đúng đơn)
 }
