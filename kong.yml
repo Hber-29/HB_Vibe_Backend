@@ -75,6 +75,29 @@ services:
                 - exp
 
 
+  # ==========================================
+  # 1. PRODUCT SERVICE (Backend Spring Boot)
+  # ==========================================
+  - name: hb-product-service
+    url: http://host.docker.internal:8083
+    routes:
+      - name: public-product-route
+        paths:
+          - /product/create-product
+          - /product/getall-products
+
+        strip_path: false
+
+      - name: private-product-route
+        paths:
+          - /product
+
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
 
 
 
