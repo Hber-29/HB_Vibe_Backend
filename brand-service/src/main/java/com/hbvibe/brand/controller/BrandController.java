@@ -1,0 +1,30 @@
+package com.hbvibe.brand.controller;
+
+import com.hbvibe.brand.dto.ApiResponse;
+import com.hbvibe.brand.dto.request.BrandCreateRequest;
+import com.hbvibe.brand.dto.response.BrandCreateResponse;
+import com.hbvibe.brand.service.BrandService;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+@Slf4j
+@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+
+
+public class BrandController {
+    BrandService brandService;
+    @PostMapping("/create_brand")
+    public ApiResponse<BrandCreateResponse> createBrand(@RequestBody BrandCreateRequest brandCreateRequest) {
+        return ApiResponse.<BrandCreateResponse>builder()
+                .message("Tạo Brand thành công!")
+                .result(brandService.createBrand(brandCreateRequest))
+                .build();
+    }
+}

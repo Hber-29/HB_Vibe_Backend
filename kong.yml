@@ -99,6 +99,50 @@ services:
               claims_to_verify:
                 - exp
 
+  # ==========================================
+  # 1. FILE SERVICE (Backend Spring Boot)
+  # ==========================================
+  - name: hb-file-service
+    url: http://host.docker.internal:8084
+    routes:
+      - name: public-file-route
+        paths:
+          - /file/presigned-url
+
+        strip_path: false
+
+      - name: private-file-route
+        paths:
+          - /file
+
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+  # ==========================================
+  # 1. BRAND SERVICE (Backend Spring Boot)
+  # ==========================================
+  - name: hb-brand-service
+    url: http://host.docker.internal:8085
+    routes:
+      - name: public-brand-route
+        paths:
+          - /brand/create_brand
+
+        strip_path: false
+
+      - name: private-brand-route
+        paths:
+          - /brand
+
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
 
 
 # ==========================================
