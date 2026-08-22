@@ -18,14 +18,11 @@ import org.springframework.stereotype.Component;
 public class NotificationController {
     NotificationService notificationService;
 
-    @KafkaListener(topics = "notification-delivery"
+    @KafkaListener(topics = {"notification-delivery","notification-brand"}
             ,groupId = "notification-group-test")
     public void listen(NotificationEvent event){
        log.info("Message received: {}", event);
-
        notificationService.processNotification(event);
 
-
     }
-
 }
