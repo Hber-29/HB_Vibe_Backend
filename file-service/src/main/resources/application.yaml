@@ -1,0 +1,24 @@
+server:
+  port: 8084
+  servlet:
+    context-path: /file
+
+
+spring:
+  minio:
+    url: http://localhost:9000
+    access-key: admin
+    secret-key: admin12345
+
+
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/HBvibe_Web
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration

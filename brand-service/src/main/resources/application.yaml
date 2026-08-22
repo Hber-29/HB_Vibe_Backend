@@ -1,0 +1,40 @@
+server:
+  port: 8085
+  servlet:
+    context-path: /brand
+spring:
+  application:
+    name: user-service
+  datasource:
+    url: "jdbc:postgresql://localhost:5434/brand_db"
+    driver-class-name: "org.postgresql.Driver"
+    username: root
+    password: rootpassword
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/HBvibe_Web
+  keycloak:
+    server-url: http://localhost:8080
+    realm: HBvibe_Web
+    admin:
+      client-id: HBvibe_web_backend
+      username: admin
+      password: admin
+
+  cache:
+    type: redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

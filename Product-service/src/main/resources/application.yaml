@@ -1,0 +1,27 @@
+server:
+  port: 8083
+  servlet:
+    context-path: /product
+spring:
+  application:
+    name: product-service
+  datasource:
+    url: "jdbc:postgresql://localhost:5434/product_db"
+    driver-class-name: "org.postgresql.Driver"
+    username: root
+    password: rootpassword
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/HBvibe_Web
+  cache:
+    type: redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
