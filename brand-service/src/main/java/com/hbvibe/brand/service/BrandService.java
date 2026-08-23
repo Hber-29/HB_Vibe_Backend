@@ -2,7 +2,9 @@ package com.hbvibe.brand.service;
 
 import com.hbvibe.brand.dto.request.AddMemberRequest;
 import com.hbvibe.brand.dto.request.BrandCreateRequest;
+import com.hbvibe.brand.dto.request.UpdateBrandRequest;
 import com.hbvibe.brand.dto.response.BrandCreateResponse;
+import com.hbvibe.brand.dto.response.UpdateBrandResponse;
 import com.hbvibe.brand.entity.Brand;
 import com.hbvibe.brand.entity.BrandMember;
 import com.hbvibe.brand.entity.BrandRole;
@@ -120,7 +122,7 @@ public class BrandService {
                 .build();
         brandMemberRepository.save(brandMember);
         // logic xử lý việc lưu cặp khóa userid:brandid để đối chiếu
-        String redisKey = String.format("brand_role:%s:%s", userId, brandMember.getId());
+        String redisKey = String.format("brand_role:%s:%s", userId, createdBrand.getId());
         stringRedisTemplate.opsForValue().set(redisKey, BrandRole.OWNER.name());
         //add user vào đúng brand
         keycloakGroupService.addUserGruop(userId, "BRAND_OWNER");
@@ -196,6 +198,38 @@ public class BrandService {
 
 
 
+    }
+    @Transactional
+    public UpdateBrandResponse updateBrand(String userId,String brandId,UpdateBrandRequest updateBrandRequest) {
+        checkPermission(userId,brandId,List.of(BrandRole.OWNER,BrandRole.MANAGER));
+        Brand brand = brandRepository.findById(brandId)
+                .orElseThrow(()-> new AppException(ErrorCode.VALUE_NULL));
+        brand.setName(updateBrandRequest.getName());
+        brand.setSlug(generateSlug(updateBrandRequest.getName()));
+        brand.setLogo(updateBrandRequest.getLogo());
+        brand.setDescription(updateBrandRequest.getDescription());
+        brand.setCountry(updateBrandRequest.getCountry());
+        brand.setStatus(updateBrandRequest.getStatus());
+        brand.setUpdatedAt(LocalDateTime.now());
+
+        brand = brandRepository.save(brand);
+
+        return brandMapper.toUpdateBrandResponse(brand);
+
+    }
+
+    private void checkPermission(String userId, String brandId, List<BrandRole> allowedRoles) {
+        String redisKey= String.format("brand_role:%s:%s", userId, brandId);
+        log.info("Đang kiểm tra quyền với Redis Key: [{}]", redisKey);
+        String currentRole = stringRedisTemplate.opsForValue().get(redisKey);
+        log.info("Quyền lấy ra từ Redis là: [{}]", currentRole);
+        if (currentRole == null) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        boolean hasPermission = allowedRoles.stream().anyMatch(role -> role.name().equals(currentRole));
+        if(!hasPermission){
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
     }
 
 
