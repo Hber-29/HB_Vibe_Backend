@@ -4,9 +4,12 @@ import com.hbvibe.brand.dto.ApiResponse;
 import com.hbvibe.brand.dto.request.AddMemberRequest;
 import com.hbvibe.brand.dto.request.BrandCreateRequest;
 import com.hbvibe.brand.dto.request.UpdateBrandRequest;
+import com.hbvibe.brand.dto.request.UpdateRoleRequest;
 import com.hbvibe.brand.dto.response.BrandCreateResponse;
 import com.hbvibe.brand.dto.response.UpdateBrandResponse;
+import com.hbvibe.brand.entity.BrandRole;
 import com.hbvibe.brand.service.BrandService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -38,6 +41,7 @@ public class BrandController {
         return ResponseEntity.ok().build();
     }
 
+    // update infprmation brand
     @PutMapping("/edit_brand/{brandId}")
     public ApiResponse<UpdateBrandResponse> updateBrand(
             @PathVariable String brandId,
@@ -50,6 +54,20 @@ public class BrandController {
                 .message("Cập nhật thông tin brand thành công")
                 .result(brandService.updateBrand(userId, brandId, request))
                 .build();
+
+    }
+
+    // update role member
+    @PutMapping("/{brandId}/members/{targetUserId}/role")
+    public ResponseEntity<?> updateRoleMember(
+            @PathVariable String brandId,
+            @PathVariable String targetUserId,
+            @Valid @RequestBody UpdateRoleRequest newRole,
+            JwtAuthenticationToken jwt
+            ){
+        String requestUserId = jwt.getName();
+        brandService.updateMemberRole(brandId,requestUserId,targetUserId,newRole);
+        return ResponseEntity.ok().build();
 
     }
 }

@@ -102,4 +102,5 @@ public class GlobalExceptionHandler {
 
         return message.replace("{" + MIN_ATTRIBUTE + "}", minValue);
     }
+
 }

@@ -3,6 +3,7 @@ package com.hbvibe.brand.service;
 import com.hbvibe.brand.dto.request.AddMemberRequest;
 import com.hbvibe.brand.dto.request.BrandCreateRequest;
 import com.hbvibe.brand.dto.request.UpdateBrandRequest;
+import com.hbvibe.brand.dto.request.UpdateRoleRequest;
 import com.hbvibe.brand.dto.response.BrandCreateResponse;
 import com.hbvibe.brand.dto.response.UpdateBrandResponse;
 import com.hbvibe.brand.entity.Brand;
@@ -216,6 +217,31 @@ public class BrandService {
 
         return brandMapper.toUpdateBrandResponse(brand);
 
+    }
+    // hàm update role của member
+    @Transactional
+    public void updateMemberRole(String brandId,String requesterUserId,String targetUserId, UpdateRoleRequest newRole){
+        log.info("Du lieu nhap vao la :{}",newRole);
+        checkPermission(requesterUserId,brandId,List.of(BrandRole.OWNER));
+        BrandMember member = brandMemberRepository.findByBrandIdAndUserId(brandId,targetUserId)
+                .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        BrandRole oldRole = member.getRole();
+        if(oldRole== newRole.getBrandRole()) return;
+        if(oldRole== BrandRole.OWNER){
+            throw new AppException(ErrorCode.CANNOT_CHANGE_OWNER_ROLE);
+        }
+        member.setRole(newRole.getBrandRole());
+        brandMemberRepository.save(member);
+        //cập nhật lại redis
+        String redisKey= String.format("brand_role:%s:%s",targetUserId,brandId);
+        stringRedisTemplate.opsForValue().set(redisKey,newRole.getBrandRole().name());
+        // cập nhật lại keycloak
+        String oldGruopName= "BRAND_" + oldRole;
+        String newGruopName= "BRAND_" + newRole.getBrandRole();
+        keycloakGroupService.removeUserFromGroup(targetUserId,oldGruopName);
+        keycloakGroupService.addUserGruop(targetUserId,newGruopName);
+        log.info("Owner {} đã đổi quyền của {} từ {} sang {}", requesterUserId, targetUserId, oldRole, newRole);
     }
 
     private void checkPermission(String userId, String brandId, List<BrandRole> allowedRoles) {

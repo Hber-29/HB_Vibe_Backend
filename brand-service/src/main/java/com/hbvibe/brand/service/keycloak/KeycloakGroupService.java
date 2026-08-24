@@ -9,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -46,5 +47,19 @@ public class KeycloakGroupService {
     public List<UserRepresentation> searchUser(String staffEmail){
         List<UserRepresentation> users = keycloak.realm(realm).users().search(null, null, null, staffEmail, 0, 10);
         return users;
+    }
+
+    public void removeUserFromGroup(String userId,String gruopName) {
+        try{
+            String gruopId = keycloak.realm(realm).groups().groups()
+                    .stream().filter(g->g.getName().equalsIgnoreCase(gruopName))
+                    .findFirst()
+                    .orElseThrow(()-> new AppException(ErrorCode.FIND_NOT_GRUOP))
+                    .getId();
+            keycloak.realm(realm).users().get(userId).leaveGroup(gruopId);
+        }catch (Exception e){
+            log.error("Lỗi khi gỡ quyền trên Keycloak: ", e);
+            throw new RuntimeException("Lỗi thu hồi quyền Keycloak!");
+        }
     }
 }
