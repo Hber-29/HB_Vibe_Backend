@@ -70,4 +70,15 @@ public class BrandController {
         return ResponseEntity.ok().build();
 
     }
+
+    @DeleteMapping("/{brandId}/delete/{targetUserId}/role")
+    public ResponseEntity<?> deleteMemberBrand(
+            @PathVariable String brandId,
+            @PathVariable String targetUserId,
+            JwtAuthenticationToken jwt
+    ){
+        String requestUserId = jwt.getName();
+        brandService.deleteMemberBrand(brandId,requestUserId,targetUserId);
+        return ResponseEntity.ok().build();
+    }
 }

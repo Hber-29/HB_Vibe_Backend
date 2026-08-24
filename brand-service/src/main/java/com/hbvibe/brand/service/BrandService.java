@@ -244,6 +244,27 @@ public class BrandService {
         log.info("Owner {} đã đổi quyền của {} từ {} sang {}", requesterUserId, targetUserId, oldRole, newRole);
     }
 
+    // chức năng xóa thành viên khỏi brand
+    @Transactional
+    public void deleteMemberBrand(String brandId, String requesterUserId, String targetUserId){
+        checkPermission(requesterUserId,brandId,List.of(BrandRole.OWNER));
+        if(requesterUserId.equals(targetUserId)){
+            throw new AppException(ErrorCode.CANNOT_REMOVE_YOURSELF);
+        }
+        BrandMember member = brandMemberRepository.findByBrandIdAndUserId(brandId,targetUserId)
+                .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        BrandRole oldRole = member.getRole();
+
+        brandMemberRepository.delete(member);
+        String redisKey= String.format("brand_role:%s:%s",targetUserId,brandId);
+        stringRedisTemplate.delete(redisKey);
+        String oldGruopName= "BRAND_" + oldRole;
+        keycloakGroupService.removeUserFromGroup(targetUserId,oldGruopName);
+        log.info("User {} đã xóa thành viên {} khỏi brand {}", requesterUserId, targetUserId, brandId);
+
+    }
+
     private void checkPermission(String userId, String brandId, List<BrandRole> allowedRoles) {
         String redisKey= String.format("brand_role:%s:%s", userId, brandId);
         log.info("Đang kiểm tra quyền với Redis Key: [{}]", redisKey);

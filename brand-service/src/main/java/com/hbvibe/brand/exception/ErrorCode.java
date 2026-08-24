@@ -23,6 +23,7 @@ public enum ErrorCode {
     MAX_BRAND_LIMIT_REACHED(1016,"Bạn đã đạt giới hạn tối đa 3 thương hiệu.",HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND(1017,"User not found", HttpStatus.BAD_REQUEST),
     CANNOT_CHANGE_OWNER_ROLE(1018,"Cant't change owner role", HttpStatus.BAD_REQUEST),
+    CANNOT_REMOVE_YOURSELF(1019,"Can't remove yourself", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
