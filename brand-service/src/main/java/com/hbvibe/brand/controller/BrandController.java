@@ -17,6 +17,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.shaded.com.google.protobuf.Api;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +32,7 @@ public class BrandController {
     BrandService brandService;
     @PostMapping("/create_brand")
     public ApiResponse<BrandCreateResponse> createBrand(@RequestBody BrandCreateRequest brandCreateRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return ApiResponse.<BrandCreateResponse>builder()
                 .message("Tạo Brand thành công!")
                 .result(brandService.createBrand(brandCreateRequest))
@@ -70,7 +73,7 @@ public class BrandController {
         return ResponseEntity.ok().build();
 
     }
-
+    // delete member of brand
     @DeleteMapping("/{brandId}/delete/{targetUserId}/role")
     public ResponseEntity<?> deleteMemberBrand(
             @PathVariable String brandId,

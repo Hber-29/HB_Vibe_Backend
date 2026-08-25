@@ -27,6 +27,7 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -56,6 +57,7 @@ public class BrandService {
 
 
     @Transactional
+    @PreAuthorize("hasRole('create_brand')")
     public BrandCreateResponse createBrand(BrandCreateRequest brandCreateRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = authentication.getName();
@@ -174,6 +176,8 @@ public class BrandService {
     }
 
     // hàm thêm thành viên cho brand
+    @Transactional
+    @PreAuthorize("hasRole('add_member_brand')")
     public void addMemberBrand(AddMemberRequest addMemberRequest) {
 
         List<UserRepresentation> user = keycloakGroupService.searchUser(addMemberRequest.getStaffEmail());
@@ -201,6 +205,7 @@ public class BrandService {
 
     }
     @Transactional
+    @PreAuthorize("hasRole('edit_brand')")
     public UpdateBrandResponse updateBrand(String userId,String brandId,UpdateBrandRequest updateBrandRequest) {
         checkPermission(userId,brandId,List.of(BrandRole.OWNER,BrandRole.MANAGER));
         Brand brand = brandRepository.findById(brandId)
@@ -220,6 +225,7 @@ public class BrandService {
     }
     // hàm update role của member
     @Transactional
+    @PreAuthorize("hasRole('edit_role_member_brand')")
     public void updateMemberRole(String brandId,String requesterUserId,String targetUserId, UpdateRoleRequest newRole){
         log.info("Du lieu nhap vao la :{}",newRole);
         checkPermission(requesterUserId,brandId,List.of(BrandRole.OWNER));
@@ -246,6 +252,7 @@ public class BrandService {
 
     // chức năng xóa thành viên khỏi brand
     @Transactional
+    @PreAuthorize("hasRole('delete_brand')")
     public void deleteMemberBrand(String brandId, String requesterUserId, String targetUserId){
         checkPermission(requesterUserId,brandId,List.of(BrandRole.OWNER));
         if(requesterUserId.equals(targetUserId)){
