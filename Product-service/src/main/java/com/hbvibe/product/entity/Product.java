@@ -36,7 +36,7 @@ public class Product {
     private Long categoryId;
 
     @Column(name = "brand_id")
-    private Long brandId;
+    private String brandId;
 
     @Column(nullable = false, length = 255)
     private String name;

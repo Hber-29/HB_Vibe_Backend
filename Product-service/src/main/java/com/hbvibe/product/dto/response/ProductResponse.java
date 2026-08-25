@@ -13,37 +13,37 @@ import java.util.List;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductResponse {
-    private Long id;
-    private Long categoryId;
-    private Long brandId;
-    private String name;
-    private String slug;
-    private String shortDescription;
-    private String description;
-    private String thumbnail;
-    private BigDecimal price;
-    private BigDecimal salePrice;
-    private String status;
-    private Boolean isFeatured;
-    private String metaTitle;
-    private String metaDescription;
-    private Integer viewCount;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;    // Danh sách biến thể và ảnh
-    private List<VariantResponse> variants;
-    private List<ImageResponse> images;
+     Long id;
+     Long categoryId;
+     String brandId;
+     String name;
+     String slug;
+     String shortDescription;
+     String description;
+     String thumbnail;
+     BigDecimal price;
+     BigDecimal salePrice;
+     String status;
+     Boolean isFeatured;
+     String metaTitle;
+     String metaDescription;
+     Integer viewCount;
+     LocalDateTime createdAt;
+     LocalDateTime updatedAt;    // Danh sách biến thể và ảnh
+     List<VariantResponse> variants;
+     List<ImageResponse> images;
     @Data
     @Builder
     public static class VariantResponse {
-        private Long id;
-        private String sku;
-        private String size;
-        private String color;
-        private Integer stockQuantity;
-        private BigDecimal price;
-        private BigDecimal salePrice;
-        private BigDecimal weight;
-        private String status;
+         Long id;
+         String sku;
+         String size;
+         String color;
+         Integer stockQuantity;
+         BigDecimal price;
+         BigDecimal salePrice;
+         BigDecimal weight;
+         String status;
     }
     @Data
     @Builder

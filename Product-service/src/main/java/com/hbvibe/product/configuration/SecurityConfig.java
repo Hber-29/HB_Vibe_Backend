@@ -13,7 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private final String[] PUBLIC_ENDPOINTS = {"/create-product","/getall-products"};
+    private final String[] PUBLIC_ENDPOINTS = {"/create-product","/getall-products","/getbrand-products/{brandId}"};
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {

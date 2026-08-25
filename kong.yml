@@ -85,6 +85,7 @@ services:
         paths:
           - /product/create-product
           - /product/getall-products
+          - /getbrand-products/{brandId}
 
         strip_path: false
 
