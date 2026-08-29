@@ -13,7 +13,9 @@ import jakarta.persistence.Id;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "products")
@@ -91,12 +93,12 @@ public class Product {
     // Một sản phẩm có nhiều ảnh. CascadeType.ALL giúp lưu/xóa sản phẩm thì lưu/xóa luôn ảnh
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<ProductImage> images = new ArrayList<>();
+    private Set<ProductImage> images = new LinkedHashSet<>();
 
     // Một sản phẩm có nhiều biến thể
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<ProductVariant> variants = new ArrayList<>();
+    private Set<ProductVariant> variants = new LinkedHashSet<>();
 
     // hai hàm ép bảng con nhận bảng cha
 //    public void addVariant(ProductVariant variant) {

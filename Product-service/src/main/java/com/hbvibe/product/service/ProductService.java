@@ -1,5 +1,6 @@
 package com.hbvibe.product.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hbvibe.product.dto.ApiResponse;
 import com.hbvibe.product.dto.request.ProductRequest;
 import com.hbvibe.product.dto.response.PageResponse;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.text.Normalizer;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -44,7 +46,8 @@ import java.util.stream.Collectors;
 public class ProductService {
     ProductRepository productRepository;
     ProductMapper productMapper;
-    private final StringRedisTemplate stringRedisTemplate;
+    final StringRedisTemplate stringRedisTemplate;
+    ObjectMapper objectMapper;
 
     @Transactional
     @PreAuthorize("hasRole('create_product_brand')")
@@ -75,7 +78,7 @@ public class ProductService {
                     .sortOrder(img.getSortOrder())
                     .altText(img.getAltText())
                     .build())
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
             product.setImages(images);
         }
         if(productRequest.getVariants()!=null && !productRequest.getVariants().isEmpty()){
@@ -90,14 +93,21 @@ public class ProductService {
                             .weight(variant.getWeight())
                             .status(Status.ACTIVE)
                     .build())
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
             product.setVariants(variants);
         }
         var productNew = productRepository.save(product);
+        // lưu sản phẩm vào redis để phục vụ cho chức năng lấy chi tiết sản phẩm
+        try{
+            String productJson = objectMapper.writeValueAsString(productNew);
+            String detailKey = String.format("product_detail:" + productNew.getSlug());
+            stringRedisTemplate.opsForValue().set(detailKey,productJson,7, TimeUnit.DAYS);
+            log.info("Đã lưu thành công sản phẩm vào cache redis với slug : {}",productNew.getSlug());
+        }catch(Exception e){
+            log.error("Lỗi khi lưu sản phẩm vào Redis (Cache Warming): {}", e.getMessage());
+        }
+
         return productMapper.toProductResponse(productNew);
-
-
-
 
     }
 
@@ -122,6 +132,7 @@ public class ProductService {
         List<ProductListResponse> productList = productPage.getContent().stream()
                 .map(product->ProductListResponse.builder()
                         .id(product.getId())
+                        .slug(product.getSlug())
                         .name(product.getName())
                         .thumbnail(product.getThumbnail())
                         .price(product.getPrice())
@@ -160,6 +171,58 @@ public class ProductService {
                 .totalElements(productPage.getTotalElements())
                 .items(productList)
                 .build();
+    }
+    @Transactional
+    public ProductResponse getProductDetails(String slug){
+        String detailKey = "product_detail:" + slug;
+        String viewKey = "product_view:" + slug;
+        ProductResponse productResponse = null;
+
+        try{
+            String productJson = stringRedisTemplate.opsForValue().get(detailKey);
+            if(productJson != null){
+                productResponse = objectMapper.readValue(productJson, ProductResponse.class);
+                log.info("Lấy dữ liệu thành công từ redis cho slug: {}" , slug);
+
+            }
+        }catch(Exception e){
+            log.info("Lỗi không lấy được dữ liệu trong redis: {} " ,e.getMessage() );
+        }
+        if(productResponse == null){
+            log.info("Cache đang rỗng ! đang lấy databse để lưu vào redis với slug : {}", slug);
+            Product product= productRepository.findBySlug(slug)
+                    .orElseThrow(()-> new AppException(ErrorCode.USERID_NOT_EXISTS));
+            productResponse = productMapper.toProductResponse(product);
+
+            try{
+                String productJson = objectMapper.writeValueAsString(productResponse);
+                stringRedisTemplate.opsForValue().set(detailKey,productJson,7,TimeUnit.DAYS);
+                log.info("Lưu thành công dữ liệu của slug {} vào redis ", slug);
+            }catch(Exception e){
+                log.info("Lỗi khônh lưu được dữ liệu trong redis: {}" , e.getMessage() );
+            }
+
+        }
+        // logic giúp tăng view(cập nhậ trong redis) khi người dùng ấn vaof xem chi tiết
+        try{
+            Boolean hasViewKey = stringRedisTemplate.hasKey(viewKey);
+            if(Boolean.FALSE.equals(hasViewKey)){
+                stringRedisTemplate.opsForValue().set(viewKey,String.valueOf(productResponse.getViewCount()));
+            }
+            Long currentView = stringRedisTemplate.opsForValue().increment(viewKey);
+
+            if(currentView!=null){
+                productResponse.setViewCount(currentView.intValue());
+            }
+        }catch(Exception e){
+            log.info("Lỗi khi cập nhật view trong redis: {}" ,e.getMessage() );
+            productResponse.setViewCount(productResponse.getViewCount()+1);
+        }
+
+        return productResponse;
+
+
+
     }
     // hàm check quyền thông qua redis
     private void checkPermission (String userId,String brandId, List<String> allowedRoles){

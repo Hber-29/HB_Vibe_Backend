@@ -15,6 +15,7 @@ public class ProductListResponse implements Serializable {
     // Thêm serialVersionUID là best practice của Java khi implement Serializable
     private static final long serialVersionUID = 1L;
     Long id;
+    String slug;
     String name;
     String thumbnail;
     BigDecimal price;

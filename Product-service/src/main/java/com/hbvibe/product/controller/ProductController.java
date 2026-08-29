@@ -60,4 +60,11 @@ public class ProductController {
                 .result(pageResponse)
                 .build();
     }
+    @GetMapping("/detail-product/{slug}")
+    public ApiResponse<ProductResponse> getProductDetail(@PathVariable String slug){
+        return ApiResponse.<ProductResponse>builder()
+                .message("Lấy Thông tin chi tiết sản phẩm thành công")
+                .result(productService.getProductDetails(slug))
+                .build();
+    }
 }
