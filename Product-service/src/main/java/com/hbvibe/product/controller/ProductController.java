@@ -2,9 +2,11 @@ package com.hbvibe.product.controller;
 
 import com.hbvibe.product.dto.ApiResponse;
 import com.hbvibe.product.dto.request.ProductRequest;
+import com.hbvibe.product.dto.request.UpdateProductRequest;
 import com.hbvibe.product.dto.response.PageResponse;
 import com.hbvibe.product.dto.response.ProductListResponse;
 import com.hbvibe.product.dto.response.ProductResponse;
+import com.hbvibe.product.dto.response.UpdateProductResponse;
 import com.hbvibe.product.service.ProductService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +67,16 @@ public class ProductController {
         return ApiResponse.<ProductResponse>builder()
                 .message("Lấy Thông tin chi tiết sản phẩm thành công")
                 .result(productService.getProductDetails(slug))
+                .build();
+    }
+    @PutMapping("/update-product/{productId}")
+    public ApiResponse<UpdateProductResponse> updateProductDetails(
+            @PathVariable Long productId,
+            @RequestBody UpdateProductRequest updateProductRequest
+            ){
+        return ApiResponse.<UpdateProductResponse>builder()
+                .message("Cập nhật thông tin sản phẩm thành công ")
+                .result(productService.updateProductDetails(productId,updateProductRequest))
                 .build();
     }
 }

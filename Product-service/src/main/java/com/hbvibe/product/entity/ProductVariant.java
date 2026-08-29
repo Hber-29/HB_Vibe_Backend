@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLDelete(sql = "UPDATE product_variants SET deleted_at = NOW() WHERE id = ?")
+@SQLDelete(sql = "UPDATE product_variants SET deleted_at = NOW() WHERE id = ?") // dùng để xóa mềm
 @Where(clause = "deleted_at IS NULL")
 public class ProductVariant {
 

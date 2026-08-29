@@ -17,5 +17,6 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     // Báo cho Hibernate biết: "Khi lấy Product, hãy JOIN lấy luôn cả mảng Variants và Images lên trong 1 câu SQL duy nhất"
     @EntityGraph(attributePaths = {"variants", "images"})
     Optional<Product> findBySlug(String slug);
+    Optional<Product> findById(Long id);
 
 }

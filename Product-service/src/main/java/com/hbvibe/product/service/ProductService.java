@@ -3,9 +3,11 @@ package com.hbvibe.product.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hbvibe.product.dto.ApiResponse;
 import com.hbvibe.product.dto.request.ProductRequest;
+import com.hbvibe.product.dto.request.UpdateProductRequest;
 import com.hbvibe.product.dto.response.PageResponse;
 import com.hbvibe.product.dto.response.ProductListResponse;
 import com.hbvibe.product.dto.response.ProductResponse;
+import com.hbvibe.product.dto.response.UpdateProductResponse;
 import com.hbvibe.product.entity.Product;
 import com.hbvibe.product.entity.ProductImage;
 import com.hbvibe.product.entity.ProductVariant;
@@ -34,7 +36,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 import java.text.Normalizer;
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -224,6 +229,149 @@ public class ProductService {
 
 
 
+    }
+
+    public UpdateProductResponse updateProductDetails(Long productId,UpdateProductRequest updateProductRequest){
+        Product excitingProduct = productRepository.findById(productId)
+                .orElseThrow(()-> new AppException(ErrorCode.USERID_NOT_EXISTS));
+        String oldSlug = excitingProduct.getSlug();
+
+            excitingProduct.setCategoryId(excitingProduct.getCategoryId());
+            excitingProduct.setName(updateProductRequest.getName());
+            excitingProduct.setDescription(updateProductRequest.getDescription());
+            excitingProduct.setShortDescription(updateProductRequest.getShortDescription());
+            excitingProduct.setThumbnail(updateProductRequest.getThumbnail());
+            excitingProduct.setPrice(updateProductRequest.getPrice());
+            excitingProduct.setSalePrice(updateProductRequest.getSalePrice());
+            excitingProduct.setStatus(updateProductRequest.getStatus());
+            excitingProduct.setIsFeatured(updateProductRequest.getIsFeatured());
+            excitingProduct.setMetaTitle(updateProductRequest.getMetaTitle());
+            excitingProduct.setMetaDescription(updateProductRequest.getMetaDescription());
+        String newSlug = null;
+        if(updateProductRequest.getName() != null){
+            newSlug = generateSlug(updateProductRequest.getName());
+            excitingProduct.setSlug(newSlug);
+        }
+        snycVariants(excitingProduct,updateProductRequest.getVariants());
+        snycImages(excitingProduct,updateProductRequest.getImages());
+        Product updatedProduct = productRepository.save(excitingProduct);
+        UpdateProductResponse updateProductResponse = productMapper.toUpdateProductResponse(updatedProduct);
+        updateRedisCache(oldSlug,newSlug,updateProductResponse);
+
+        return updateProductResponse;
+
+    }
+
+    private void snycVariants(Product product, List<UpdateProductRequest.VariantDto> variantDtos ){
+        if (variantDtos == null) return;
+        // logic gom tất cả các id của variants vào
+        Set<ProductVariant> excitingVariants = product.getVariants();
+        Set<Long> incomingIds = new HashSet<>();
+        for(UpdateProductRequest.VariantDto dto : variantDtos){
+            if(dto.getId()!= null){
+                incomingIds.add(dto.getId());
+            }
+        }
+        // xóa các variant không có trong request gửi đến
+        excitingVariants.removeIf(variant ->
+                variant.getId()!= null && !incomingIds.contains(variant.getId()));
+        for(UpdateProductRequest.VariantDto dto : variantDtos){
+            if(dto.getId()!= null){
+                //nếu trùng id thì chỉ là chỉnh sửa tệp cũ với id cũ
+                excitingVariants.stream()
+                        .filter(v ->v.getId().equals(dto.getId()))
+                        .findFirst()
+                        .ifPresent(excitingVariant -> {
+                            excitingVariant.setSize(dto.getSize());
+                            excitingVariant.setColor(dto.getColor());
+                            excitingVariant.setSku(dto.getSku());
+                            excitingVariant.setStockQuantity(dto.getStockQuantity());
+                            excitingVariant.setPrice(dto.getPrice());
+                            excitingVariant.setSalePrice(dto.getSalePrice());
+                            excitingVariant.setStatus(dto.getStatus());
+                            excitingVariant.setWeight(dto.getWeight());
+                            excitingVariant.setImage(dto.getImage());
+                        });
+            }
+            else{
+                // không trùng id thì là giá trị mới phải tạo mới với id mới
+                ProductVariant newProductVariant = ProductVariant.builder()
+                        .product(product)
+                        .size(dto.getSize())
+                        .color(dto.getColor())
+                        .sku(dto.getSku())
+                        .price(dto.getPrice())
+                        .salePrice(dto.getSalePrice())
+                        .stockQuantity(dto.getStockQuantity())
+                        .weight(dto.getWeight())
+                        .image(dto.getImage())
+                        .status(dto.getStatus())
+                        .build();
+                excitingVariants.add(newProductVariant);
+
+            }
+        }
+
+    }
+
+    private void snycImages(Product product, List<UpdateProductRequest.ImageDto> imageDtos){
+        if(imageDtos == null) return;
+
+        Set<Long> incomingIds = new HashSet<>();
+        Set<ProductImage> excitingImages = product.getImages();
+        for(UpdateProductRequest.ImageDto dto : imageDtos){
+            if(dto.getId()!= null){
+                incomingIds.add(dto.getId());
+            }
+        }
+        excitingImages.removeIf(image
+                ->image.getId()!= null && !incomingIds.contains(image.getId()));
+
+        for(UpdateProductRequest.ImageDto dto : imageDtos){
+            if(dto.getId()!= null){
+                excitingImages.stream()
+                        .filter(image ->image.getId().equals(dto.getId()))
+                        .findFirst()
+                        .ifPresent(excitingImage -> {
+                            excitingImage.setProduct(product);
+                            excitingImage.setImageUrl(dto.getImageUrl());
+                            excitingImage.setSortOrder(dto.getSortOrder());
+                        });
+            }
+            else {
+                ProductImage newProductImage = ProductImage.builder()
+                        .product(product)
+                        .altText(dto.getAltText())
+                        .imageUrl(dto.getImageUrl())
+                        .sortOrder(dto.getSortOrder())
+                        .build();
+                excitingImages.add(newProductImage);
+            }
+        }
+
+    }
+
+    private void updateRedisCache(String oldSlug , String newSlug , UpdateProductResponse productResponse){
+        try {
+            String oldDetailKey = "product_detail:" + oldSlug;
+            String newDetailKey = "product_detail:" + newSlug;
+            String oldViewKey = "product_view:" + oldSlug;
+            String newViewKey = "product_view:" + newSlug;
+
+            stringRedisTemplate.delete(oldDetailKey);
+            if(!oldSlug.equals(newSlug)){
+                Boolean hasOldView = stringRedisTemplate.hasKey(oldViewKey);
+                if(Boolean.TRUE.equals(hasOldView)){
+                    stringRedisTemplate.rename(oldViewKey, newViewKey);
+                }
+            }
+
+            String jsonToCache = objectMapper.writeValueAsString(productResponse);
+            stringRedisTemplate.opsForValue().set(newDetailKey, jsonToCache,7, TimeUnit.DAYS);
+            log.info("Đã cập nhật Redis thành công cho sản phẩm {}", newSlug);
+        }catch (Exception e){
+            log.info("Lỗi khi cập nhật Redis cho sản phẩm {}", newSlug);
+        }
     }
     // hàm check quyền thông qua redis
     private void checkPermission (String userId,String brandId, List<String> allowedRoles){
