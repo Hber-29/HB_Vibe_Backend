@@ -172,6 +172,7 @@ public class ProductService {
                 .items(productList)
                 .build();
     }
+    // hàm lấy thông tin chi tiết sản phẩm
     @Transactional
     public ProductResponse getProductDetails(String slug){
         String detailKey = "product_detail:" + slug;
