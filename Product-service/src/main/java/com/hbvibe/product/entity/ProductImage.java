@@ -3,6 +3,9 @@ package com.hbvibe.product.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.SQLDelete;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "product_images")
@@ -11,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "UPDATE product_images SET deleted_at = NOW() WHERE id = ?") // dùng để xóa mềm
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductImage {
 
@@ -30,4 +34,7 @@ public class ProductImage {
 
     @Column(name = "alt_text", length = 255)
     private String altText; // Bổ sung cho SEO
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

@@ -60,7 +60,7 @@ public class ProductService {
 
         checkPermission(userId,brandId,List.of("OWNER","MANAGER","STAFF"));
         Product product = Product.builder()
-                .categoryId(productRequest.getCategoryId())
+//                .categoryId(productRequest.getCategoryId())
                 .brandId(brandId)
                 .name(productRequest.getName())
                 .slug(generateSlug(productRequest.getName()))
@@ -236,7 +236,7 @@ public class ProductService {
                 .orElseThrow(()-> new AppException(ErrorCode.USERID_NOT_EXISTS));
         String oldSlug = excitingProduct.getSlug();
 
-            excitingProduct.setCategoryId(excitingProduct.getCategoryId());
+//            excitingProduct.setCategoryId(excitingProduct.getCategoryId());
             excitingProduct.setName(updateProductRequest.getName());
             excitingProduct.setDescription(updateProductRequest.getDescription());
             excitingProduct.setShortDescription(updateProductRequest.getShortDescription());

@@ -34,8 +34,6 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "category_id", nullable = false)
-    private Long categoryId;
 
     @Column(name = "brand_id")
     private String brandId;
@@ -68,7 +66,12 @@ public class Product {
     private Boolean isFeatured = false;
 
     @Column(name = "view_count")
+    @Builder.Default
     private Integer viewCount = 0;
+
+    @Column(name = "sold_quantity")
+    @Builder.Default
+    private Integer soldQuantity = 0;
 
     /* --- CÁC TRƯỜNG BỔ SUNG CHO SEO --- */
     @Column(name = "meta_title", length = 255)
@@ -100,20 +103,15 @@ public class Product {
     @Builder.Default
     private Set<ProductVariant> variants = new LinkedHashSet<>();
 
-    // hai hàm ép bảng con nhận bảng cha
-//    public void addVariant(ProductVariant variant) {
-//        if (this.variants == null) {
-//            this.variants = new ArrayList<>(); // Khởi tạo nếu bị null
-//        }
-//        this.variants.add(variant);
-//        variant.setProduct(this);
-//    }
-//
-//    public void addImage(ProductImage image) {
-//        if (this.images == null) {
-//            this.images = new ArrayList<>();
-//        }
-//        this.images.add(image);
-//        image.setProduct(this);
-//    }
+    // QUAN HỆ MỚI THÊM (quan hệ giữa product và categories)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "product_category",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    @Builder.Default
+    private Set<Category> categories = new LinkedHashSet<>();
+
+
 }

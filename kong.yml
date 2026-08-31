@@ -87,6 +87,7 @@ services:
           - /product/getall-products
           - /product/getbrand-products
           - /product/detail-product
+          - /product/create-category
 
         strip_path: false
 
