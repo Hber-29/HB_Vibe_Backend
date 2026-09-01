@@ -14,7 +14,8 @@ import java.util.Set;
 
 @Entity
 @Table(name = "categories")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -82,6 +83,7 @@ public class Category {
 
     // 2. TỰ THAM CHIẾU: Chứa danh sách Danh mục con
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC, name ASC")  // để cho hibernate sắp sắp các danh mục con theo thứ tự ưu tiên.
     @Builder.Default
     Set<Category> children = new LinkedHashSet<>();
 

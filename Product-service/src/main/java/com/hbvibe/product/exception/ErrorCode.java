@@ -20,6 +20,7 @@ public enum ErrorCode {
     VALUE_NULL(1013, "Value is null", HttpStatus.BAD_REQUEST),
     CANNOT_ROLE(1014,"Bạn không có quyền để thực hiện chức năng này",HttpStatus.BAD_REQUEST),
     CANNOT_CATEGORY(1015,"Không tìm thấy danh mục", HttpStatus.BAD_REQUEST),
+    NAME_CATEGORY_EXITED(1016,"Name category exited", HttpStatus.BAD_REQUEST),
 
     ;
 

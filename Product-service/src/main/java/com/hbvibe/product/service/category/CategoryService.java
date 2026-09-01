@@ -2,6 +2,7 @@ package com.hbvibe.product.service.category;
 
 import com.hbvibe.product.dto.category.request.CategoryCreateRequest;
 import com.hbvibe.product.dto.category.response.CategoryCreateResponse;
+import com.hbvibe.product.dto.category.response.CategoryTreeResponse;
 import com.hbvibe.product.entity.Category;
 import com.hbvibe.product.entity.Status;
 import com.hbvibe.product.exception.AppException;
@@ -17,7 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +36,7 @@ public class CategoryService {
         // lọc trùng slug
         String generatedSlug = generateSlug(categoryCreateRequest.getName());
         if (categoryRepository.existsBySlug(generatedSlug)) {
-            throw new RuntimeException("Danh mục này đã tồn tại (Trùng Slug)!");
+            throw new AppException(ErrorCode.NAME_CATEGORY_EXITED);
         }
         Category newCategory = Category.builder()
                 .name(categoryCreateRequest.getName())
@@ -60,9 +64,36 @@ public class CategoryService {
 
     }
 
+    // hàm lấy ra tất cả các danh mục để hiển thị ở FE
+    public List<CategoryTreeResponse> getCategoryTree(){
+        List<Category> rootCategories = categoryRepository.findByParentIsNullOrderBySortOrderAscNameAsc();
+        return rootCategories.stream()
+                .map(this::mapToTreeResponse)
+                .collect(Collectors.toList());
+    }
+    // hàm đệ quy(tự gọi chính nó ) để đào sâu vào các lớp con của con
+    private CategoryTreeResponse mapToTreeResponse(Category category){
+        CategoryTreeResponse response = CategoryTreeResponse.builder()
+                .id(category.getId())
+                .name(category.getName())
+                .slug(category.getSlug())
+                .level(category.getLevel())
+                .sortOrder(category.getSortOrder())
+                .build();
+        if(category.getChildren() !=null && !category.getChildren().isEmpty()){
+            List<CategoryTreeResponse> childrenDTOs = category.getChildren().stream()
+                    .map(this::mapToTreeResponse)
+                    .collect(Collectors.toList());
+            response.setChildren(childrenDTOs);
+        }
+        return response;
+    }
 
 
 
+
+
+    // hàm chuẩn hóa name thành slug
     private String generateSlug(String input) {
         if (input == null || input.isEmpty()) return "";
         String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);

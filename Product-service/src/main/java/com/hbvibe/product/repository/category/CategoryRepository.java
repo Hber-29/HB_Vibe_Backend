@@ -4,6 +4,7 @@ import com.hbvibe.product.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -14,4 +15,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Override
     Optional<Category> findById(Long id);
+    // Lấy danh mục gốc, sắp xếp theo sortOrder tăng dần, nếu trùng thì xếp theo tên A-Z
+    List<Category> findByParentIsNullOrderBySortOrderAscNameAsc();
 }
