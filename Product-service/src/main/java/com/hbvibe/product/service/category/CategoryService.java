@@ -1,6 +1,7 @@
 package com.hbvibe.product.service.category;
 
 import com.hbvibe.product.dto.category.request.CategoryCreateRequest;
+import com.hbvibe.product.dto.category.request.CategoryUpdateRequest;
 import com.hbvibe.product.dto.category.response.CategoryCreateResponse;
 import com.hbvibe.product.dto.category.response.CategoryTreeResponse;
 import com.hbvibe.product.entity.Category;
@@ -65,6 +66,7 @@ public class CategoryService {
     }
 
     // hàm lấy ra tất cả các danh mục để hiển thị ở FE
+    @Transactional(readOnly = true)
     public List<CategoryTreeResponse> getCategoryTree(){
         List<Category> rootCategories = categoryRepository.findByParentIsNullOrderBySortOrderAscNameAsc();
         return rootCategories.stream()
@@ -87,6 +89,60 @@ public class CategoryService {
             response.setChildren(childrenDTOs);
         }
         return response;
+    }
+    @Transactional
+    public CategoryCreateResponse updateCategory(CategoryUpdateRequest request,long id) {
+
+        Category existingCategory = categoryRepository.findById(id)
+                .orElseThrow(()-> new AppException(ErrorCode.CANNOT_CATEGORY));
+
+        String generatedSlug = generateSlug(request.getName());
+        // kiểm tra trùng slug( ngoại trừ id của chính danh mục này)
+        if(categoryRepository.existsBySlugAndIdNot(generatedSlug,id)){
+            throw new AppException(ErrorCode.NAME_CATEGORY_EXITED);
+        }
+        // ngăn lỗi tự nhận bản thân làm cha
+        if(request.getParentId() != null && request.getParentId().equals(id)){
+            throw new RuntimeException("Không thể tự nhận chính mình làm cha");
+        }
+        existingCategory.setName(request.getName());
+        existingCategory.setSlug(generatedSlug);
+        existingCategory.setDescription(request.getDescription());
+        existingCategory.setImage(request.getImage());
+        existingCategory.setSortOrder(request.getSortOrder() != null ? request.getSortOrder() : 0);
+        existingCategory.setMetaTitle(request.getMetaTitle());
+        existingCategory.setMetaDescription(request.getMetaDescription());
+
+        // logic tính toán level mới (khi thay đổi parentId)
+        Integer newLevel = 0;
+        if(request.getParentId() != null){
+            Category parentCategory = categoryRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new AppException(ErrorCode.CANNOT_CATEGORY));
+            existingCategory.setParent(parentCategory);
+            newLevel = parentCategory.getLevel() + 1;
+        }else {
+            existingCategory.setParent(null);
+        }
+        // kiểm tra xem pảentId thay đổi hay vẫn giữ như cũ
+        if(!existingCategory.getLevel().equals(newLevel)){
+            existingCategory.setLevel(newLevel);
+            updateChildrenLevels(existingCategory,newLevel);
+        }
+
+        Category savedCategory = categoryRepository.save(existingCategory);
+        return categoryMapper.toCategoryCreateResponse(savedCategory);
+
+    }
+    // hàm đệ quy gọi sâu vào các danh mục con
+    private void updateChildrenLevels(Category parentCategory, int parentNewLevel){
+        if(parentCategory.getChildren() !=null && !parentCategory.getChildren().isEmpty()){
+            for(Category child : parentCategory.getChildren()){
+                child.setLevel(parentNewLevel + 1);
+
+                updateChildrenLevels(child,parentNewLevel + 1);
+            }
+
+        }
     }
 
 
