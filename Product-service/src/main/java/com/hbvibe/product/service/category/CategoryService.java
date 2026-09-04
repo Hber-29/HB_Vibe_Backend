@@ -9,12 +9,12 @@ import com.hbvibe.product.entity.Status;
 import com.hbvibe.product.exception.AppException;
 import com.hbvibe.product.exception.ErrorCode;
 import com.hbvibe.product.mapper.category.CategoryMapper;
+import com.hbvibe.product.repository.ProductRepository;
 import com.hbvibe.product.repository.category.CategoryRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.errors.ApiException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 public class CategoryService {
     CategoryRepository categoryRepository;
     CategoryMapper categoryMapper;
+    ProductRepository productRepository;
 
     @Transactional
     public CategoryCreateResponse createCategory(CategoryCreateRequest categoryCreateRequest) {
@@ -143,6 +144,34 @@ public class CategoryService {
             }
 
         }
+    }
+
+
+    // các hàm của chức năng xóa danh mục
+    public long countProductsAffectedByDelete(Long categoryId){
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(()-> new AppException(ErrorCode.CANNOT_CATEGORY));
+        List<Long> categoryIdsToCheck = getCategoryAndChildrenIds(category);
+        return productRepository.countByCategoriesIdIn(categoryIdsToCheck);
+
+    }
+    //hàm xóa trực tiếp (khi xóa thì chỉ là xáo mềm vì thế lên nó vẫn tồn taij trong ccsdl phải cần clone job để dọn dẹp)  và khi xóa danh mục các sản phẩm sẽ mồ côi ở danh mục này.
+    public void deleteCategory(Long categoryId){
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(()-> new AppException(ErrorCode.CANNOT_CATEGORY));
+
+        categoryRepository.delete(category);
+    }
+    // hamf laays ra tất cả ác id con trong id cha
+    private List<Long> getCategoryAndChildrenIds(Category root){
+        List<Long> categoryIds = new ArrayList<>();
+        categoryIds.add(root.getId());
+        if(root.getChildren() !=null && !root.getChildren().isEmpty()) {
+            for (Category child : root.getChildren()) {
+                categoryIds.addAll(getCategoryAndChildrenIds(child));
+            }
+        }
+        return categoryIds;
     }
 
 

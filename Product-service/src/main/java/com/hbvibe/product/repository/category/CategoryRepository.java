@@ -18,4 +18,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByParentIsNullOrderBySortOrderAscNameAsc();
     // kiểm tra slug nhưng sẽ bỏ qua cái slug của id đang update
     boolean existsBySlugAndIdNot(String slug, Long id);
+
+
 }

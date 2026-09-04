@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,5 +49,18 @@ public class CategoryController {
                 .result(categoryService.updateCategory(request,id))
                 .build();
 
+    }
+    // 2 api xóa danh mục
+    // cái này lấy ra tổng sanr phẩm của id danh mục sẽ xóa (hiển thị cho admin biết )
+    @GetMapping("/{id}/check-delete")
+    public ResponseEntity<Long> checkBeforeDelete(@PathVariable Long id){
+        long affectedProductsCount = categoryService.countProductsAffectedByDelete(id);
+
+        return  ResponseEntity.ok(affectedProductsCount);
+    }
+    @DeleteMapping("{id}")
+    public ResponseEntity<String> deleteCategory(@PathVariable Long id){
+        categoryService.deleteCategory(id);
+        return ResponseEntity.ok("Đã xóa danh mục thành công! Các sản phẩm liên quan đã được gỡ danh mục.");
     }
 }
