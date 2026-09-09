@@ -1,0 +1,21 @@
+server:
+  port: 8086
+  servlet:
+    context-path: /banner
+spring:
+  application:
+    name: product-service
+  datasource:
+    url: "jdbc:postgresql://localhost:5434/banner_db"
+    driver-class-name: "org.postgresql.Driver"
+    username: root
+    password: rootpassword
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/HBvibe_Web

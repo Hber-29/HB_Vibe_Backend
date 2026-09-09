@@ -52,7 +52,7 @@ services:
 
 
   # ==========================================
-  # 1. NOTIFICGATION SERVICE (Backend Spring Boot)
+  # 3. NOTIFICGATION SERVICE (Backend Spring Boot)
   # ==========================================
   - name: hb-notification-service
     url: http://host.docker.internal:8082
@@ -76,7 +76,7 @@ services:
 
 
   # ==========================================
-  # 1. PRODUCT SERVICE (Backend Spring Boot)
+  # 4. PRODUCT SERVICE (Backend Spring Boot)
   # ==========================================
   - name: hb-product-service
     url: http://host.docker.internal:8083
@@ -103,7 +103,7 @@ services:
                 - exp
 
   # ==========================================
-  # 1. FILE SERVICE (Backend Spring Boot)
+  # 5. FILE SERVICE (Backend Spring Boot)
   # ==========================================
   - name: hb-file-service
     url: http://host.docker.internal:8084
@@ -125,7 +125,7 @@ services:
               claims_to_verify:
                 - exp
   # ==========================================
-  # 1. BRAND SERVICE (Backend Spring Boot)
+  # 6. BRAND SERVICE (Backend Spring Boot)
   # ==========================================
   - name: hb-brand-service
     url: http://host.docker.internal:8085
@@ -147,9 +147,32 @@ services:
               claims_to_verify:
                 - exp
 
+  # ==========================================
+  # 7. BANNER SERVICE (Backend Spring Boot)
+  # ==========================================
+  - name: hb-banner-service
+    url: http://host.docker.internal:8086
+    routes:
+      - name: public-banner-route
+        paths:
+          - /banner/create_banner
+
+        strip_path: false
+
+      - name: private-banner-route
+        paths:
+          - /banner
+
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+
 
 # ==========================================
-# 3. CẤU HÌNH CHÌA KHÓA CÔNG KHAI (PUBLIC KEY)
+#  CẤU HÌNH CHÌA KHÓA CÔNG KHAI (PUBLIC KEY)
 # ==========================================
 consumers:
   # Tạo một danh tính ảo trên Kong để đại diện cho Keycloak

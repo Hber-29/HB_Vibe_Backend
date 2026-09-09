@@ -1,4 +1,4 @@
-package com.hbvibe.product.configuration;
+package com.hbvibe.banner.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
