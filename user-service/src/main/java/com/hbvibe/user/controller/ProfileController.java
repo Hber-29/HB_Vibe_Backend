@@ -22,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@RequestMapping("/api/v1")
 public class ProfileController {
     ProfileService profileService;
     @PostMapping("/register")
@@ -32,36 +33,38 @@ public class ProfileController {
 
 
     }
-    @GetMapping("/allUsers")
+    // hàm lấy tất cả danh sách user(cho admin)
+    @GetMapping
     public ApiResponse<List<ProfileResponse>> getAllUsers(){
         return ApiResponse.<List<ProfileResponse>>builder()
                 .result(profileService.getAllUsers())
                 .build();
 
     }
-    @GetMapping("/myUser")
+    @GetMapping("/me")
     public ApiResponse<ProfileResponse> getMyUserProfile(){
         return ApiResponse.<ProfileResponse>builder()
                 .result(profileService.getMyUserProfile())
                 .build();
     }
 
-    @PostMapping("/update_user/{id}")
-    public ApiResponse<UpdateUserProfileResponse> updateUserStyle(@RequestBody UpdateUserProfileRequest updateUserProfileRequest
+    @PutMapping("/{id}")
+    public ApiResponse<UpdateUserProfileResponse> updateUserStyle(
+            @RequestBody UpdateUserProfileRequest updateUserProfileRequest
             , @PathVariable UUID id){
         return ApiResponse.<UpdateUserProfileResponse>builder()
                 .result(profileService.updateUserProfile(updateUserProfileRequest,id))
                 .build();
     }
 
-    @GetMapping("/myUser_style/{id}")
+    @GetMapping("/{id}/styles")
     public ApiResponse<UpdateUserProfileResponse> getMyUserProfileStyle(@PathVariable UUID id){
         return ApiResponse.<UpdateUserProfileResponse>builder()
                 .result(profileService.getMyUserProfileStyle(id))
                 .build();
     }
 
-    @GetMapping("/allUser_style")
+    @GetMapping("/styles")
     public ApiResponse<List<UpdateUserProfileResponse>> getAllUserProfileStyle(){
         return ApiResponse.<List<UpdateUserProfileResponse>>builder()
                 .result(profileService.getAllUserProfilesStyle())
@@ -69,7 +72,7 @@ public class ProfileController {
 
     }
 
-    @DeleteMapping("/delete_userprofile/{id}")
+    @DeleteMapping("/{id}")
     public void deleteUserProfile(@PathVariable UUID id){
         profileService.deleteUserProfile(id);
     }

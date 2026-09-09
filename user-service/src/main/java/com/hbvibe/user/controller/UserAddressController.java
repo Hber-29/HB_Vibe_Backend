@@ -18,29 +18,30 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@RequestMapping("/api/v1")
 public class UserAddressController {
     UserAddressService userAddressService;
 
-    @PostMapping("/create_address")
+    @PostMapping("/addresses/me")
     public ApiResponse<UserAddressResponse> createUserAddress(@RequestBody UserAddressRequest userAddressRequest) {
         return ApiResponse.<UserAddressResponse>builder()
                 .result(userAddressService.createUserAddress(userAddressRequest))
                 .build();
     }
 
-    @PostMapping("/update_address/{id}")
+    @PutMapping("/addresses/{id}")
     public ApiResponse<UserAddressResponse> updateUserAddress(@RequestBody UserAddressRequest userAddressRequest,@PathVariable UUID id) {
         return ApiResponse.<UserAddressResponse>builder()
                 .result(userAddressService.updateUserAddress(userAddressRequest,id))
                 .build();
     }
 
-    @DeleteMapping("/delete_address/{id}")
+    @DeleteMapping("/addresses/{id}")
     public void deleteUserAddress(@PathVariable UUID id) {
          userAddressService.deleteUserAddress(id);
     }
 
-    @GetMapping("/get_address")
+    @GetMapping("/addresses/me")
     public ApiResponse<List<UserAddressResponse>> getAllUserAddresses(){
         return ApiResponse.<List<UserAddressResponse>>builder()
                 .result(userAddressService.getAllUserAddresses())

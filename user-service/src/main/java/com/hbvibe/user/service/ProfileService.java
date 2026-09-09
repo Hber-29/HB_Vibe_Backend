@@ -239,12 +239,10 @@ public class ProfileService {
         return profileMapper.toProfileStyleResponse(userProfile,userStyleProfile);
 
     }
-    // xóa toàn bộ tài khoản
+    // xóa toàn bộ tài khoản (dành cho admin)
     @Transactional
     public void deleteUserProfile(UUID id) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userId = authentication.getName();
-        UserProfile userProfile = profileRepository.findByIdAndKeycloakId(id,userId)
+        UserProfile userProfile = profileRepository.findById(id)
                 .orElseThrow(()->new AppException(ErrorCode.USERID_NOT_EXISTS));
 
         var token = identityClient.exchangeToken(TokenExchangeParam.builder()
@@ -256,7 +254,7 @@ public class ProfileService {
 
         log.info("TokenInfo {}", token);
         // gọi qua keycloak để xóa user (xóa cứng)
-        identityClient.deleteUser("Bearer " + token.getAccessToken(),userId);
+        identityClient.deleteUser("Bearer " + token.getAccessToken(),userProfile.getKeycloakId());
         profileRepository.delete(userProfile);
 
     }
