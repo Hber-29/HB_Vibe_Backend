@@ -7,18 +7,13 @@ import com.hbvibe.brand.dto.request.UpdateBrandRequest;
 import com.hbvibe.brand.dto.request.UpdateRoleRequest;
 import com.hbvibe.brand.dto.response.BrandCreateResponse;
 import com.hbvibe.brand.dto.response.UpdateBrandResponse;
-import com.hbvibe.brand.entity.BrandRole;
 import com.hbvibe.brand.service.BrandService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.shaded.com.google.protobuf.Api;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,26 +21,25 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
-
+@RequestMapping("/api/v1")
 
 public class BrandController {
     BrandService brandService;
-    @PostMapping("/create_brand")
+    @PostMapping
     public ApiResponse<BrandCreateResponse> createBrand(@RequestBody BrandCreateRequest brandCreateRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return ApiResponse.<BrandCreateResponse>builder()
                 .message("Tạo Brand thành công!")
                 .result(brandService.createBrand(brandCreateRequest))
                 .build();
     }
-    @PostMapping("/add_member")
-    public ResponseEntity<?> addMemberBrand(@RequestBody AddMemberRequest addMemberRequest) {
+    @PostMapping("/members")
+    public ResponseEntity<String> addMemberBrand(@RequestBody AddMemberRequest addMemberRequest) {
         brandService.addMemberBrand(addMemberRequest);
         return ResponseEntity.ok().build();
     }
 
     // update infprmation brand
-    @PutMapping("/edit_brand/{brandId}")
+    @PutMapping("/{brandId}")
     public ApiResponse<UpdateBrandResponse> updateBrand(
             @PathVariable String brandId,
             JwtAuthenticationToken jwt,
@@ -62,7 +56,7 @@ public class BrandController {
 
     // update role member
     @PutMapping("/{brandId}/members/{targetUserId}/role")
-    public ResponseEntity<?> updateRoleMember(
+    public ResponseEntity<String> updateRoleMember(
             @PathVariable String brandId,
             @PathVariable String targetUserId,
             @Valid @RequestBody UpdateRoleRequest newRole,
@@ -74,8 +68,8 @@ public class BrandController {
 
     }
     // delete member of brand
-    @DeleteMapping("/{brandId}/delete/{targetUserId}/role")
-    public ResponseEntity<?> deleteMemberBrand(
+    @DeleteMapping("/{brandId}/members/{targetUserId}")
+    public ResponseEntity<String> deleteMemberBrand(
             @PathVariable String brandId,
             @PathVariable String targetUserId,
             JwtAuthenticationToken jwt

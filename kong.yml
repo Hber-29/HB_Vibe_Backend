@@ -125,13 +125,15 @@ services:
     routes:
       - name: public-brand-route
         paths:
-          - /brand/create_brand
+          - /brand/api/v1
+        methods:
+          - GET
 
         strip_path: false
 
       - name: private-brand-route
         paths:
-          - /brand
+          - /brand/api/v1
 
         strip_path: false
         plugins:
