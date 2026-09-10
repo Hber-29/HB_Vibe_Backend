@@ -12,18 +12,17 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.function.EntityResponse;
-
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@RequestMapping("/api/v1")
 public class BannerController {
     BannerService bannerService;
 
-    @PostMapping("/create_banner")
+    @PostMapping
     public ApiResponse<BannerResponse> createBanner (@RequestBody BannerCreateRequest request){
         return ApiResponse.<BannerResponse>builder()
                 .message("Tạo banner thành công !")
@@ -31,7 +30,7 @@ public class BannerController {
                 .build();
 
     }
-    @PostMapping("/update_banner/{id}")
+    @PutMapping("/{id}")
     public ApiResponse<BannerResponse> updateBanner(
             @PathVariable Long id,
             @RequestBody BannerUpdateResquest request){
@@ -40,15 +39,15 @@ public class BannerController {
                 .result(bannerService.updateBanner(request,id))
                 .build();
     }
-
-    @GetMapping("/get_banner/{id}")
+    // lấy banner theo id (dngf để lấy banner theo id để admin có thể chỉnh sửa )
+    @GetMapping("/{id}")
     public ApiResponse<BannerResponse> getBannerById(@PathVariable Long id){
         return ApiResponse.<BannerResponse>builder()
                 .result(bannerService.getBannerById(id))
                 .build();
     }
-
-    @GetMapping("/get_allbanner")
+    // lấy banner theo số lương
+    @GetMapping
     public ApiResponse<List<BannerResponse>> getPublicBanners(
             @RequestParam BannerPosition position,
             @RequestParam(defaultValue = "3") Integer limit
@@ -60,7 +59,7 @@ public class BannerController {
 
     }
 
-    @DeleteMapping("/delete_banner/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteBanner(@PathVariable Long id){
         bannerService.deleteBanner(id);
         return ResponseEntity.ok().build();

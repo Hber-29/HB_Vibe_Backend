@@ -150,13 +150,15 @@ services:
     routes:
       - name: public-banner-route
         paths:
-          - /banner/create_banner
+          - /banner/api/v1
+        methods:
+          - GET
 
         strip_path: false
 
       - name: private-banner-route
         paths:
-          - /banner
+          - /banner/api/v1
 
         strip_path: false
         plugins:

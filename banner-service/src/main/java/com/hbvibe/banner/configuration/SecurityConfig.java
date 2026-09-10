@@ -2,6 +2,7 @@ package com.hbvibe.banner.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,20 +14,18 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private final String[] PUBLIC_ENDPOINTS = {
-            "/create-product"
-            ,"/getall-products"
-            ,"/getbrand-products/**"
-            ,"/detail-product/**"
-            ,"/categories-tree"
-    };
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(PUBLIC_ENDPOINTS)
-                .permitAll()
-                .anyRequest()
-                .authenticated());
+        httpSecurity.authorizeHttpRequests(request -> request
+                // 1. Mở public cho toàn bộ các API dùng HTTP Method GET
+                // Bao gồm: /api/v1 (danh sách), /api/v1/{slug}, /api/v1/categories/tree,...
+                .requestMatchers(HttpMethod.GET, "/api/v1", "/api/v1/**").permitAll()
+
+                // 2. Yêu cầu token xác thực cho toàn bộ các request khác (POST, PUT, DELETE)
+                .anyRequest().authenticated()
+        );
 
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
                         .jwtAuthenticationConverter(jwtAuthenticationConverter()))
