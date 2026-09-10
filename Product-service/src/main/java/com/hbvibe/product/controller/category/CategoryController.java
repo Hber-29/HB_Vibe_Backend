@@ -20,10 +20,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@RequestMapping("/api/v1")
 public class CategoryController {
     CategoryService categoryService;
 
-    @PostMapping("/create-category")
+    @PostMapping
     public ApiResponse<CategoryCreateResponse> createCategory(@Valid @RequestBody CategoryCreateRequest request) {
         return ApiResponse.<CategoryCreateResponse>builder()
                 .result(categoryService.createCategory(request))
@@ -31,7 +32,7 @@ public class CategoryController {
     }
 
     // chức năng lấy tất cả các danh mục
-    @GetMapping("/categories-tree")
+    @GetMapping("/tree")
     public ApiResponse<List<CategoryTreeResponse>> getAllCategories() {
         return ApiResponse.<List<CategoryTreeResponse>>builder()
                 .message("Lấy tất cả các danh mục thành công !")
@@ -39,7 +40,7 @@ public class CategoryController {
                 .build();
     }
 
-    @PutMapping("/edit-category/{id}")
+    @PutMapping("/categories/{id}")
     public ApiResponse<CategoryCreateResponse> updateCategory (
             @PathVariable Long id,
             @Valid @RequestBody CategoryUpdateRequest request
@@ -52,13 +53,14 @@ public class CategoryController {
     }
     // 2 api xóa danh mục
     // cái này lấy ra tổng sanr phẩm của id danh mục sẽ xóa (hiển thị cho admin biết )
-    @GetMapping("/{id}/check-delete")
+    @GetMapping("/{id}/impact")
     public ResponseEntity<Long> checkBeforeDelete(@PathVariable Long id){
         long affectedProductsCount = categoryService.countProductsAffectedByDelete(id);
 
         return  ResponseEntity.ok(affectedProductsCount);
     }
-    @DeleteMapping("{id}")
+    // chức năng xóa mềm danh mục
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteCategory(@PathVariable Long id){
         categoryService.deleteCategory(id);
         return ResponseEntity.ok("Đã xóa danh mục thành công! Các sản phẩm liên quan đã được gỡ danh mục.");

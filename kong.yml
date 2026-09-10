@@ -78,17 +78,15 @@ services:
     routes:
       - name: public-product-route
         paths:
-          - /product/create-product
-          - /product/getall-products
-          - /product/getbrand-products
-          - /product/detail-product
-          - /product/categories-tree
+          - /product/api/v1
+        methods:
+          - GET
 
         strip_path: false
 
       - name: private-product-route
         paths:
-          - /product
+          - /product/api/v1
 
         strip_path: false
         plugins:

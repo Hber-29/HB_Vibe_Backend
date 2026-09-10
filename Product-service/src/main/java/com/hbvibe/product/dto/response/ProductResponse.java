@@ -33,7 +33,10 @@ public class ProductResponse {
      List<VariantResponse> variants;
      List<ImageResponse> images;
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Builder
+    @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class VariantResponse {
          Long id;
          String sku;
@@ -46,7 +49,10 @@ public class ProductResponse {
          String status;
     }
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Builder
+    @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class ImageResponse {
         private Long id;
         private String imageUrl;

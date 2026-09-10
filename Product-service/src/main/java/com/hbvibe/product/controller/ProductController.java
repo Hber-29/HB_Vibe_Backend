@@ -19,10 +19,12 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@RequestMapping("/api/v1")
 public class ProductController {
     ProductService productService;
 
-    @PostMapping("/create-product/{brandId}")
+    // chức năng tạo product của brand (quyền của brand)
+    @PostMapping("/brands/{brandId}")
     public ApiResponse<ProductResponse> createProduct(
             @RequestBody ProductRequest productRequest,
             @PathVariable String brandId,
@@ -36,7 +38,8 @@ public class ProductController {
                 .result(productService.createProduct(userId,brandId,productRequest))
                 .build();
     }
-    @GetMapping("/getall-products")
+    // hàm lấy tất cả sản phẩm hiển thị lên trang
+    @GetMapping
     public ApiResponse<PageResponse<ProductListResponse>> getAllProducts(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
@@ -47,8 +50,8 @@ public class ProductController {
                 .result(pageResponse)
                 .build();
     }
-
-    @GetMapping("/getbrand-products/{brandId}")
+    // hàm lấy tất cả các sản phẩm của 1 brand hiển thị lên trang của brand
+    @GetMapping("/brands/{brandId}")
     public ApiResponse<PageResponse<ProductListResponse>> getAllProductsByBrand(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -61,14 +64,17 @@ public class ProductController {
                 .result(pageResponse)
                 .build();
     }
-    @GetMapping("/detail-product/{slug}")
+    // lấy chi tiết sản phẩm
+    @GetMapping("/{slug}")
     public ApiResponse<ProductResponse> getProductDetail(@PathVariable String slug){
         return ApiResponse.<ProductResponse>builder()
                 .message("Lấy Thông tin chi tiết sản phẩm thành công")
                 .result(productService.getProductDetails(slug))
                 .build();
     }
-    @PutMapping("/update-product/{productId}")
+
+    // chỉnh sửa thông tin sản phẩm
+    @PutMapping("/{productId}")
     public ApiResponse<UpdateProductResponse> updateProductDetails(
             @PathVariable Long productId,
             @RequestBody UpdateProductRequest updateProductRequest

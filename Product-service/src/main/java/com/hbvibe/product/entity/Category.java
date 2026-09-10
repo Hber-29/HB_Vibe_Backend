@@ -1,5 +1,6 @@
 package com.hbvibe.product.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.OrderBy;
@@ -90,6 +91,7 @@ public class Category {
     // 3. QUAN HỆ NHIỀU-NHIỀU VỚI SẢN PHẨM (Ánh xạ ngược từ bảng Product)
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)
     @Builder.Default
+    @JsonIgnore
     Set<Product> products = new LinkedHashSet<>();
 
 }

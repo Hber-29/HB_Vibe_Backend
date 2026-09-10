@@ -8,15 +8,13 @@ import com.hbvibe.product.dto.response.PageResponse;
 import com.hbvibe.product.dto.response.ProductListResponse;
 import com.hbvibe.product.dto.response.ProductResponse;
 import com.hbvibe.product.dto.response.UpdateProductResponse;
-import com.hbvibe.product.entity.Product;
-import com.hbvibe.product.entity.ProductImage;
-import com.hbvibe.product.entity.ProductVariant;
-import com.hbvibe.product.entity.Status;
+import com.hbvibe.product.entity.*;
 import com.hbvibe.product.exception.AppException;
 import com.hbvibe.product.exception.ErrorCode;
 import com.hbvibe.product.mapper.ProductMapper;
 import com.hbvibe.product.repository.ProductRepository;
 
+import com.hbvibe.product.repository.category.CategoryRepository;
 import lombok.AccessLevel;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +51,7 @@ public class ProductService {
     ProductMapper productMapper;
     final StringRedisTemplate stringRedisTemplate;
     ObjectMapper objectMapper;
+    CategoryRepository categoryRepository;
 
     @Transactional
     @PreAuthorize("hasRole('create_product_brand')")
@@ -75,6 +74,13 @@ public class ProductService {
                 .metaTitle(productRequest.getMetaTitle())
                 .metaDescription(productRequest.getMetaDescription())
                 .build();
+
+        if (productRequest.getCategoryId() != null) {
+            Category category = categoryRepository.findById(productRequest.getCategoryId())
+                    .orElseThrow(() -> new AppException(ErrorCode.CANNOT_CATEGORY));
+            // Gán Category vào Product.
+            product.setCategories(new HashSet<>(List.of(category)));
+        }
 
         if(productRequest.getImages()!=null && !productRequest.getImages().isEmpty()){
             var images = productRequest.getImages().stream().map(img -> ProductImage.builder()
@@ -102,17 +108,19 @@ public class ProductService {
             product.setVariants(variants);
         }
         var productNew = productRepository.save(product);
+        // chuyển dữ liệu sang dto để có thể lưu được vào redis (vì khi lưu trực tiếp bằng entity nó đang bị vòng lặp vô tận do mối quan hệ manytomany)
+        ProductResponse responseDto = productMapper.toProductResponse(productNew);
         // lưu sản phẩm vào redis để phục vụ cho chức năng lấy chi tiết sản phẩm
         try{
-            String productJson = objectMapper.writeValueAsString(productNew);
+            String productJson = objectMapper.writeValueAsString(responseDto);
             String detailKey = String.format("product_detail:" + productNew.getSlug());
             stringRedisTemplate.opsForValue().set(detailKey,productJson,7, TimeUnit.DAYS);
-            log.info("Đã lưu thành công sản phẩm vào cache redis với slug : {}",productNew.getSlug());
+            log.info("Đã lưu thành công sản phẩm vào cache redis với slug : {}",responseDto.getSlug());
         }catch(Exception e){
             log.error("Lỗi khi lưu sản phẩm vào Redis (Cache Warming): {}", e.getMessage());
         }
 
-        return productMapper.toProductResponse(productNew);
+        return responseDto;
 
     }
 
@@ -236,7 +244,7 @@ public class ProductService {
                 .orElseThrow(()-> new AppException(ErrorCode.USERID_NOT_EXISTS));
         String oldSlug = excitingProduct.getSlug();
 
-//            excitingProduct.setCategoryId(excitingProduct.getCategoryId());
+
             excitingProduct.setName(updateProductRequest.getName());
             excitingProduct.setDescription(updateProductRequest.getDescription());
             excitingProduct.setShortDescription(updateProductRequest.getShortDescription());
@@ -247,6 +255,14 @@ public class ProductService {
             excitingProduct.setIsFeatured(updateProductRequest.getIsFeatured());
             excitingProduct.setMetaTitle(updateProductRequest.getMetaTitle());
             excitingProduct.setMetaDescription(updateProductRequest.getMetaDescription());
+
+        if (updateProductRequest.getCategoryId() != null) {
+            Category newCategory = categoryRepository.findById(updateProductRequest.getCategoryId())
+                    .orElseThrow(() -> new AppException(ErrorCode.CANNOT_CATEGORY));
+
+            excitingProduct.getCategories().clear();
+            excitingProduct.getCategories().add(newCategory);
+        }
         String newSlug = null;
         if(updateProductRequest.getName() != null){
             newSlug = generateSlug(updateProductRequest.getName());

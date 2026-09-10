@@ -1,5 +1,6 @@
 package com.hbvibe.product.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -27,6 +28,7 @@ public class ProductVariant {
     // LAZY fetch giúp tối ưu hiệu năng, không tự động kéo data Product nếu không gọi tới
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonIgnore
     private Product product;
 
     @Column(length = 100)
