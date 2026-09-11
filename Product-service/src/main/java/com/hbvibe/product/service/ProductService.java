@@ -1,7 +1,6 @@
 package com.hbvibe.product.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hbvibe.product.dto.ApiResponse;
 import com.hbvibe.product.dto.request.ProductRequest;
 import com.hbvibe.product.dto.request.UpdateProductRequest;
 import com.hbvibe.product.dto.response.PageResponse;
@@ -16,10 +15,10 @@ import com.hbvibe.product.repository.ProductRepository;
 
 import com.hbvibe.product.repository.category.CategoryRepository;
 import lombok.AccessLevel;
-import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,14 +26,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 import java.text.Normalizer;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,6 +51,8 @@ public class ProductService {
 
     @Transactional
     @PreAuthorize("hasRole('create_product_brand')")
+    // annotation này vai trò là người dọn rác ,khi có sựu thay đổi dữ liệu thêm ,sửa ,xóa nó sẽ tự động xóa sachj redis để cập nhật lại
+    @CacheEvict(value = "public_products", allEntries = true)
     public ProductResponse createProduct(String userId,String brandId,ProductRequest productRequest){
 
         checkPermission(userId,brandId,List.of("OWNER","MANAGER","STAFF"));
@@ -238,7 +236,32 @@ public class ProductService {
 
 
     }
+    // hàm xóa sản phẩm dành cho admin
+    @Transactional
+    @CacheEvict(value = "public_products" ,allEntries = true)
+    public void deleteProductByAdmin(Long productId){
+        Product product = productRepository.findById(productId)
+                .orElseThrow(()-> new AppException(ErrorCode.PRODUCT_NOT_EXISTS));
+        productRepository.delete(product);
+        log.info("Admin đã xóa sản phẩm : {}" ,productId);
+    }
+    // hàm xóa sản phẩm dành cho brand
+    @Transactional
+    @CacheEvict(value = "public_products" ,allEntries = true)
+    public void deleteProductByBrand(Long productId, String brandId ,String userId){
+        Product product = productRepository.findById(productId)
+                .orElseThrow(()-> new AppException(ErrorCode.PRODUCT_NOT_EXISTS));
 
+        if(!product.getBrandId().equals(brandId)){
+            throw new RuntimeException("Sản phẩm không thuộc gian hàng này !");
+        }
+        checkPermission(userId,brandId,List.of("OWNER","MANAGER"));
+        productRepository.delete(product);
+        log.info("User {} đã xóa sản phẩm {} của gian hàng {}", userId, productId, brandId);
+    }
+
+
+    @CacheEvict(value = "public_products", allEntries = true)
     public UpdateProductResponse updateProductDetails(Long productId,UpdateProductRequest updateProductRequest){
         Product excitingProduct = productRepository.findById(productId)
                 .orElseThrow(()-> new AppException(ErrorCode.USERID_NOT_EXISTS));

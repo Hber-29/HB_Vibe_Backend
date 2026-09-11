@@ -84,4 +84,24 @@ public class ProductController {
                 .result(productService.updateProductDetails(productId,updateProductRequest))
                 .build();
     }
+    // chức năng xóa sản phẩm của admin
+    @DeleteMapping("/admin/{productId}")
+    public ApiResponse<Void> deleteProductByAdmin(@PathVariable Long productId){
+        productService.deleteProductByAdmin(productId);
+        return ApiResponse.<Void>builder()
+                .message("Admin đã xóa sản phẩm thành công !")
+                .build();
+    }
+    @DeleteMapping("/seller/brands/{brandId}/products/{productId}")
+    public ApiResponse<Void> deleteProductByBrand(
+            @PathVariable String brandId,
+            @PathVariable Long productId,
+            JwtAuthenticationToken jwt
+    ){
+        String userId = jwt.getName();
+        productService.deleteProductByBrand(productId,brandId,userId);
+        return ApiResponse.<Void>builder()
+                .message("Gian hàng xóa sản phẩm thành công !")
+                .build();
+    }
 }
