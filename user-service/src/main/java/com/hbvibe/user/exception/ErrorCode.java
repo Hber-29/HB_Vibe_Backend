@@ -18,6 +18,7 @@ public enum ErrorCode {
     PHONE_NUMBER_ALREADY_EXISTS(1011, "Phone number already exists", HttpStatus.BAD_REQUEST),
     USERID_NOT_EXISTS(1012, "Userid not exists", HttpStatus.BAD_REQUEST),
     VALUE_NULL(1013, "Value is null", HttpStatus.BAD_REQUEST),
+    FIND_NOT_GRUOP(1014, "Find't gruop", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

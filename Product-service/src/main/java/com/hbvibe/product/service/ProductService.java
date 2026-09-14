@@ -25,7 +25,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +49,7 @@ public class ProductService {
     CategoryRepository categoryRepository;
 
     @Transactional
-    @PreAuthorize("hasRole('create_product_brand')")
+//    @PreAuthorize("hasRole('create_product_brand')")
     // annotation này vai trò là người dọn rác ,khi có sựu thay đổi dữ liệu thêm ,sửa ,xóa nó sẽ tự động xóa sachj redis để cập nhật lại
     @CacheEvict(value = "public_products", allEntries = true)
     public ProductResponse createProduct(String userId,String brandId,ProductRequest productRequest){

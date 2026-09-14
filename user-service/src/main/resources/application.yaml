@@ -20,6 +20,15 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/HBvibe_Web
+
+  keycloak:
+    server-url: http://localhost:8080
+    realm: HBvibe_Web
+    admin:
+      client-id: HBvibe_web_backend
+      username: admin
+      password: admin
+
   kafka:
     bootstrap-servers: localhost:9092
     producer:

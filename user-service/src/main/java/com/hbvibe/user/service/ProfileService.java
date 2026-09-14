@@ -21,6 +21,7 @@ import com.hbvibe.user.repository.IdentityClient;
 import com.hbvibe.user.repository.ProfileRepository;
 import com.hbvibe.user.repository.UserAddressRepository;
 import com.hbvibe.user.repository.UserStyleRepository;
+import com.hbvibe.user.service.keycloak.KeycloakGroupService;
 import feign.FeignException;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -48,6 +49,7 @@ public class ProfileService {
     UserStyleRepository userStyleRepository;
     IdentityClient identityClient;
     ProfileMapper profileMapper;
+    KeycloakGroupService  keycloakGroupService;
     private final UserAddressRepository userAddressRepository;
     KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -182,10 +184,10 @@ public class ProfileService {
             //khởi tạo bảng userProfileStyle
 
             userProfile= profileRepository.save(userProfile);
+            keycloakGroupService.addUserGruop(keyCloakId,"CUSTOMER");
+            log.info("Đã cập nhật thành công quyền Khách hàng cho tài khoản mới {}", keyCloakId);
 
             return profileMapper.toProfileResponse(userProfile);
-
-
 
         } catch (FeignException exception) {
             throw  errorNormalizer.handleKeyCloakException(exception);
