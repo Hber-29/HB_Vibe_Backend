@@ -1,0 +1,21 @@
+server:
+  port: 8087
+  servlet:
+    context-path: /cart
+spring:
+  application:
+    name: cart-service
+  datasource:
+    url: "jdbc:postgresql://localhost:5434/cart_db"
+    driver-class-name: "org.postgresql.Driver"
+    username: root
+    password: rootpassword
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/HBvibe_Web

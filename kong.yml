@@ -167,7 +167,30 @@ services:
               claims_to_verify:
                 - exp
 
+  # ==========================================
+  # 8. CART SERVICE (Backend Spring Boot)
+  # ==========================================
+  - name: hb-cart-service
+    url: http://host.docker.internal:8087
+    routes:
+      - name: public-cart-route
+        paths:
+          - /cart/api/v1/carts
+        methods:
+          - GET
 
+        strip_path: false
+
+      - name: private-cart-route
+        paths:
+          - /cart/api/v1/carts
+
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
 # ==========================================
 #  CẤU HÌNH CHÌA KHÓA CÔNG KHAI (PUBLIC KEY)
 # ==========================================

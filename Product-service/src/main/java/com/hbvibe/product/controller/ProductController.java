@@ -3,10 +3,7 @@ package com.hbvibe.product.controller;
 import com.hbvibe.product.dto.ApiResponse;
 import com.hbvibe.product.dto.request.ProductRequest;
 import com.hbvibe.product.dto.request.UpdateProductRequest;
-import com.hbvibe.product.dto.response.PageResponse;
-import com.hbvibe.product.dto.response.ProductListResponse;
-import com.hbvibe.product.dto.response.ProductResponse;
-import com.hbvibe.product.dto.response.UpdateProductResponse;
+import com.hbvibe.product.dto.response.*;
 import com.hbvibe.product.service.ProductService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -102,6 +99,15 @@ public class ProductController {
         productService.deleteProductByBrand(productId,brandId,userId);
         return ApiResponse.<Void>builder()
                 .message("Gian hàng xóa sản phẩm thành công !")
+                .build();
+    }
+
+    // api giups cart service gọi sang product để kấy thông tin sản phẩm
+    @GetMapping("/{id}/cart-info")
+    public ApiResponse<VariantForCartResponse> getVariantForCart (@PathVariable Long id){
+        return ApiResponse.<VariantForCartResponse>builder()
+                .message("Lấy thông tin sản phẩm cho giỏ hàng thành công !")
+                .result(productService.getVariantForCart(id))
                 .build();
     }
 }

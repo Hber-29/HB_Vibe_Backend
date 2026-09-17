@@ -3,16 +3,14 @@ package com.hbvibe.product.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hbvibe.product.dto.request.ProductRequest;
 import com.hbvibe.product.dto.request.UpdateProductRequest;
-import com.hbvibe.product.dto.response.PageResponse;
-import com.hbvibe.product.dto.response.ProductListResponse;
-import com.hbvibe.product.dto.response.ProductResponse;
-import com.hbvibe.product.dto.response.UpdateProductResponse;
+import com.hbvibe.product.dto.response.*;
 import com.hbvibe.product.entity.*;
 import com.hbvibe.product.exception.AppException;
 import com.hbvibe.product.exception.ErrorCode;
 import com.hbvibe.product.mapper.ProductMapper;
 import com.hbvibe.product.repository.ProductRepository;
 
+import com.hbvibe.product.repository.ProductVariantRespository;
 import com.hbvibe.product.repository.category.CategoryRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +46,7 @@ public class ProductService {
     final StringRedisTemplate stringRedisTemplate;
     ObjectMapper objectMapper;
     CategoryRepository categoryRepository;
+    ProductVariantRespository productVariantRespository;
 
     @Transactional
 //    @PreAuthorize("hasRole('create_product_brand')")
@@ -56,7 +56,6 @@ public class ProductService {
 
         checkPermission(userId,brandId,List.of("OWNER","MANAGER","STAFF"));
         Product product = Product.builder()
-//                .categoryId(productRequest.getCategoryId())
                 .brandId(brandId)
                 .name(productRequest.getName())
                 .slug(generateSlug(productRequest.getName()))
@@ -297,6 +296,26 @@ public class ProductService {
         updateRedisCache(oldSlug,newSlug,updateProductResponse);
 
         return updateProductResponse;
+
+    }
+    // hàm lấy giá ,thông tin cow bản cho giửo hàng
+    public VariantForCartResponse getVariantForCart(Long id){
+        ProductVariant variant = productVariantRespository.findById(id)
+                .orElseThrow(()-> new AppException(ErrorCode.PRODUCT_NOT_EXISTS));
+        Boolean isActive = (variant.getStatus()== Status.ACTIVE);
+
+        BigDecimal finalPrice;
+        if(variant.getSalePrice() != null && variant.getSalePrice().compareTo(BigDecimal.ZERO)>0){
+            finalPrice = variant.getSalePrice();
+        }else {
+            finalPrice = variant.getPrice(); // không có giá sale thì lấy giá gốc
+        }
+        return VariantForCartResponse.builder()
+                .variantId(variant.getId())
+                .price(finalPrice)
+                .stockQuantity(variant.getStockQuantity())
+                .isActive(isActive)
+                .build();
 
     }
 
