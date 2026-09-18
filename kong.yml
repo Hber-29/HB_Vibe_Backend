@@ -79,6 +79,7 @@ services:
       - name: public-product-route
         paths:
           - /product/api/v1
+          - /product/api/v1/variants/cart-info-bulk
         methods:
           - GET
 

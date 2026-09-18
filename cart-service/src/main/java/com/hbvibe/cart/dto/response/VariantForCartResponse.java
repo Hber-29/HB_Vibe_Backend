@@ -22,4 +22,9 @@ public class VariantForCartResponse {
 
     // Trạng thái kinh doanh: true (ACTIVE), false (INACTIVE hoặc hết hàng)
     private Boolean isActive;
+
+    private String image;
+    private String productName;
+    private String size;
+    private String color;
 }

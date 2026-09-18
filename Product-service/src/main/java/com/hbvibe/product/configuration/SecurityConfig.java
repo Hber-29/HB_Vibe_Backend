@@ -22,6 +22,9 @@ public class SecurityConfig {
                 // 1. Mở public cho toàn bộ các API dùng HTTP Method GET
                 // Bao gồm: /api/v1 (danh sách), /api/v1/{slug}, /api/v1/categories/tree,...
                 .requestMatchers(HttpMethod.GET, "/api/v1", "/api/v1/**").permitAll()
+                .requestMatchers(HttpMethod.POST,
+                        "/api/v1/variants/cart-info-bulk"
+                ).permitAll()
 
                 // 2. Yêu cầu token xác thực cho toàn bộ các request khác (POST, PUT, DELETE)
                 .anyRequest().authenticated()

@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -101,13 +103,21 @@ public class ProductController {
                 .message("Gian hàng xóa sản phẩm thành công !")
                 .build();
     }
-
+    // CÁC API DÀNH RIÊNG CHO CART-SERVICE
     // api giups cart service gọi sang product để kấy thông tin sản phẩm
-    @GetMapping("/{id}/cart-info")
-    public ApiResponse<VariantForCartResponse> getVariantForCart (@PathVariable Long id){
+    @GetMapping("/variants/{id}/cart-info")
+    public ApiResponse<VariantForCartResponse> getVariantForCart(@PathVariable Long id){
         return ApiResponse.<VariantForCartResponse>builder()
                 .message("Lấy thông tin sản phẩm cho giỏ hàng thành công !")
                 .result(productService.getVariantForCart(id))
+                .build();
+    }
+    // lý do dùng post vì get chuẩn sẽ không được sử dụng gửi dữ liệu trong body ,vì vậy tôi phải dùng post(phá lệ hợp pháp)
+    @PostMapping("/variants/cart-info-bulk")
+    public ApiResponse<List<VariantForCartResponse>> getVariantForCartBulk(@RequestBody List<Long> ids){
+        return ApiResponse.<List<VariantForCartResponse>>builder()
+                .message("Lấy danh sách thông tin sản phẩm thành công !")
+                .result(productService.getVariantForCartBulk(ids))
                 .build();
     }
 }

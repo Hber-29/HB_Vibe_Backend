@@ -298,26 +298,7 @@ public class ProductService {
         return updateProductResponse;
 
     }
-    // hàm lấy giá ,thông tin cow bản cho giửo hàng
-    public VariantForCartResponse getVariantForCart(Long id){
-        ProductVariant variant = productVariantRespository.findById(id)
-                .orElseThrow(()-> new AppException(ErrorCode.PRODUCT_NOT_EXISTS));
-        Boolean isActive = (variant.getStatus()== Status.ACTIVE);
 
-        BigDecimal finalPrice;
-        if(variant.getSalePrice() != null && variant.getSalePrice().compareTo(BigDecimal.ZERO)>0){
-            finalPrice = variant.getSalePrice();
-        }else {
-            finalPrice = variant.getPrice(); // không có giá sale thì lấy giá gốc
-        }
-        return VariantForCartResponse.builder()
-                .variantId(variant.getId())
-                .price(finalPrice)
-                .stockQuantity(variant.getStockQuantity())
-                .isActive(isActive)
-                .build();
-
-    }
 
     private void snycVariants(Product product, List<UpdateProductRequest.VariantDto> variantDtos ){
         if (variantDtos == null) return;
@@ -440,5 +421,50 @@ public class ProductService {
         if(!allowedRoles.contains(currentRole)){
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
+    }
+    // CÁC API SỬ DỤNG CHO BÊN CART
+    // hàm lấy giá ,thông tin cow bản cho giửo hàng
+    public VariantForCartResponse getVariantForCart(Long id){
+        ProductVariant variant = productVariantRespository.findById(id)
+                .orElseThrow(()-> new AppException(ErrorCode.PRODUCT_NOT_EXISTS));
+        return mapToCartResponse(variant);
+
+
+    }
+    // hàm lấy thông tin của biến thể sản phẩm theo danh sách id
+    public List<VariantForCartResponse> getVariantForCartBulk(List<Long> ids){
+        List<ProductVariant> variants = productVariantRespository.findAllById(ids);
+        return variants.stream()
+                .map(this::mapToCartResponse).collect(Collectors.toList());
+    }
+    // hàm dùng chung cho việc xử lý giá hiện tại và map dữ liệu
+    private VariantForCartResponse mapToCartResponse(ProductVariant variant){
+        Boolean isActive = (variant.getStatus()== Status.ACTIVE);
+        BigDecimal finalPrice;
+        if(variant.getSalePrice() != null && variant.getSalePrice().compareTo(BigDecimal.ZERO)>0){
+            finalPrice = variant.getSalePrice();
+        }else {
+            finalPrice = variant.getPrice(); // không có giá sale thì lấy giá gốc
+        }
+        // lớp ưu tiên 1 (ưu tiên ảnh có trong variant)
+        String imageUrl = variant.getImage();
+        // lớp ưu tiên 2 (lây ảnh thumbail)
+        if(imageUrl == null || imageUrl.isBlank()){
+            imageUrl = variant.getProduct().getThumbnail();
+            // lớp ưu tiên 3 (lấy ảnh mặc đinh của FE cung cấp)
+            if(imageUrl == null || imageUrl.isBlank()){
+                imageUrl="https://cdn.hbvibe.com/images/default-placeholder.png";
+            }
+        }
+        return VariantForCartResponse.builder()
+                .variantId(variant.getId())
+                .price(finalPrice)
+                .stockQuantity(variant.getStockQuantity())
+                .isActive(isActive)
+                .image(imageUrl)
+                .productName(variant.getProduct().getName())
+                .size(variant.getSize())
+                .color(variant.getColor())
+                .build();
     }
 }
