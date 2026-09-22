@@ -6,6 +6,9 @@ import com.hbvibe.cart.dto.request.AddToCartRequest;
 import com.hbvibe.cart.dto.response.*;
 import com.hbvibe.cart.entity.Cart;
 import com.hbvibe.cart.entity.CartItem;
+import com.hbvibe.cart.exception.AppException;
+import com.hbvibe.cart.exception.ErrorCode;
+import com.hbvibe.cart.repository.CartItemRepository;
 import com.hbvibe.cart.repository.CartRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,7 @@ import java.util.stream.Collectors;
 public class CartService {
     ProductServiceClient productServiceClient;
     CartRepository cartRepository;
+    CartItemRepository cartItemRepository;
     @Transactional
     public CartItemResponse addToCart(String userId, AddToCartRequest request) {
         ApiResponse<VariantForCartResponse> apiResponse = productServiceClient
@@ -124,7 +128,7 @@ public class CartService {
                 productName = latestInfo.getProductName();
                 size = latestInfo.getSize();
                 color = latestInfo.getColor();
-
+                // xử lý trạng thái giá
                 int priceCompare = currentPrice.compareTo(cartItem.getPrice());
                 if(priceCompare<0) priceChange = PriceChangeType.DECREASED;
                 else if(priceCompare>0) priceChange = PriceChangeType.INCREASED;
@@ -160,5 +164,33 @@ public class CartService {
                 .totalSelectedPrice(totalSelectedPrice)
                 .build();
 
+    }
+    // Các Hàm xử lý chức năng cập nhật lại giỏ hàng
+    // hàm này là hàm kiểm tra tính hợp lệ của sản phẩm trong giỏ hàng (dùng chung)
+    private CartItem getValidCartItem(String userId , Long itemId){
+        CartItem item = cartItemRepository.findById(itemId)
+                .orElseThrow(()-> new RuntimeException("không tìm thấy sản phẩm trong giỏ hàng"));
+        if(!item.getCart().getUserId().equals(userId)){
+            throw new RuntimeException("Sản phẩm không thuộc giỏ hàng !");
+        }
+        return item;
+
+    }
+    // update số lượng
+    @Transactional
+    public void updateItemQuantity (String userId, Long itemId , Integer newQuantity){
+        if(newQuantity < 1 ){
+            throw new RuntimeException("Số lượng không hợp lệ !");
+        }
+        CartItem item = getValidCartItem(userId, itemId);
+        item.setQuantity(newQuantity);
+        cartItemRepository.save(item);
+    }
+    // update trạng thái có mua hàng hay không
+    @Transactional
+    public void updateItemSelection (String userId, Long itemId, boolean isSelected){
+        CartItem item = getValidCartItem(userId, itemId);
+        item.setIsSelected(isSelected);
+        cartItemRepository.save(item);
     }
 }

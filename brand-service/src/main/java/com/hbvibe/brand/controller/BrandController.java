@@ -6,6 +6,7 @@ import com.hbvibe.brand.dto.request.BrandCreateRequest;
 import com.hbvibe.brand.dto.request.UpdateBrandRequest;
 import com.hbvibe.brand.dto.request.UpdateRoleRequest;
 import com.hbvibe.brand.dto.response.BrandCreateResponse;
+import com.hbvibe.brand.dto.response.BrandResponse;
 import com.hbvibe.brand.dto.response.UpdateBrandResponse;
 import com.hbvibe.brand.service.BrandService;
 import jakarta.validation.Valid;
@@ -77,5 +78,13 @@ public class BrandController {
         String requestUserId = jwt.getName();
         brandService.deleteMemberBrand(brandId,requestUserId,targetUserId);
         return ResponseEntity.ok().build();
+    }
+    @GetMapping("/my-brand")
+    public ApiResponse<BrandResponse> getMyBrand(JwtAuthenticationToken jwt){
+        BrandResponse myBrand = brandService.getMyBrand(jwt.getName());
+        return ApiResponse.<BrandResponse>builder()
+                .message("Lấy thông tin Brand thành công")
+                .result(myBrand)
+                .build();
     }
 }

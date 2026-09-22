@@ -5,6 +5,7 @@ import com.hbvibe.brand.dto.request.BrandCreateRequest;
 import com.hbvibe.brand.dto.request.UpdateBrandRequest;
 import com.hbvibe.brand.dto.request.UpdateRoleRequest;
 import com.hbvibe.brand.dto.response.BrandCreateResponse;
+import com.hbvibe.brand.dto.response.BrandResponse;
 import com.hbvibe.brand.dto.response.UpdateBrandResponse;
 import com.hbvibe.brand.entity.Brand;
 import com.hbvibe.brand.entity.BrandMember;
@@ -284,6 +285,25 @@ public class BrandService {
         if(!hasPermission){
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
+    }
+
+    public BrandResponse getMyBrand(String userId){
+        // 1. Tìm tất cả các Brand mà user này có quyền
+        List<Brand> brands = brandRepository.findBrandsByUserId(userId);
+
+        // 2. Nếu danh sách rỗng -> Báo lỗi
+        if (brands.isEmpty()) {
+            throw new RuntimeException("Tài khoản này chưa được cấp quyền quản lý Brand nào.");
+        }
+
+        // 3. Lấy Brand đầu tiên trong danh sách để trả về cho Frontend
+        Brand brand = brands.get(0);
+        return BrandResponse.builder()
+                .id(brand.getId())
+                .name(brand.getName())
+                .logo(brand.getLogo())
+                .description(brand.getDescription())
+                .build();
     }
 
 
