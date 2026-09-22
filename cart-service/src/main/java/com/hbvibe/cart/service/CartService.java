@@ -193,4 +193,36 @@ public class CartService {
         item.setIsSelected(isSelected);
         cartItemRepository.save(item);
     }
+    // hàm chỉnh sửa size và color(nó là thay thế biến thể sản phẩm )
+    @Transactional
+    public void updateItemVariant (String userId , Long itemId, Long newVariantId){
+        // lấy ra sản phẩm cần sửa
+        CartItem currentItem = getValidCartItem(userId, itemId);
+        // nếu sửa mà vẫn giữ nguyên sẽ không thay đổi gì cả
+        if(currentItem.getProductVariantId().equals(newVariantId)){
+            return;
+        }
+
+        Long cartId = currentItem.getCart().getId();
+        // tìm xem trong giở hàng có tồn tại sản phẩm giống sản phẩm hiện tại sau khi sửa size và color không ?
+        // nếu có sẽ gộp số lượng của cái mới này vào cái đã tồn tại luôn
+        Optional<CartItem> existingItemOpt = cartItemRepository.findByCartIdAndProductVariantId(cartId, newVariantId);
+        if(existingItemOpt.isPresent()){
+            CartItem targetItem = existingItemOpt.get();
+            // gôp số lượng của cả 2 để gộp thành 1 giair quyết vẫn đề trùng sản phẩm
+            targetItem.setQuantity(targetItem.getQuantity() + currentItem.getQuantity());
+            // nếu sản phẩm cũ đã được tích chọn thì lấy luôn
+            if(currentItem.getIsSelected()){
+                targetItem.setIsSelected(true);
+            }
+            // xóa cái cũ đi
+            cartItemRepository.delete(currentItem);
+            cartItemRepository.save(targetItem);
+
+        }else {
+            // nếu không có sản phẩm nào tồn tại thì sẽ thay newVariantId vào sản phẩm đó
+            currentItem.setProductVariantId(newVariantId);
+            cartItemRepository.save(currentItem);
+        }
+    }
 }

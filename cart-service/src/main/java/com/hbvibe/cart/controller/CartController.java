@@ -5,6 +5,7 @@ import com.hbvibe.cart.dto.ApiResponse;
 import com.hbvibe.cart.dto.request.AddToCartRequest;
 import com.hbvibe.cart.dto.request.UpdateQuantityRequest;
 import com.hbvibe.cart.dto.request.UpdateSelectionRequest;
+import com.hbvibe.cart.dto.request.UpdateVariantRequest;
 import com.hbvibe.cart.dto.response.CartItemResponse;
 import com.hbvibe.cart.dto.response.CartResponse;
 import com.hbvibe.cart.service.CartService;
@@ -71,5 +72,17 @@ public class CartController {
         return ApiResponse.<String>builder()
                 .message("Cập nhật trạng thái sản phẩm thành cômg ")
                 .build();
+    }
+    @PutMapping("/items/{itemId}/variant")
+    public ApiResponse<String> updateItemVariant(
+            @PathVariable Long itemId,
+            @RequestBody UpdateVariantRequest request,
+            JwtAuthenticationToken jwt
+    ){
+        cartService.updateItemVariant(jwt.getName(), itemId, request.getNewProductVariantId());
+        return ApiResponse.<String>builder()
+                .message("Đã cập nhật biến thể sản phẩm thành công !")
+                .build();
+
     }
 }
