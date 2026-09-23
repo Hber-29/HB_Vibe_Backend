@@ -85,4 +85,14 @@ public class CartController {
                 .build();
 
     }
+    @DeleteMapping("/items/{itemId}")
+    public ApiResponse<String> removeCratItem (
+            @PathVariable Long itemId,
+            JwtAuthenticationToken jwt
+    ){
+        cartService.removeCratItem(jwt.getName(), itemId);
+        return ApiResponse.<String>builder()
+                .message("Đã xóa sản phẩm thành công")
+                .build();
+    }
 }

@@ -225,4 +225,10 @@ public class CartService {
             cartItemRepository.save(currentItem);
         }
     }
+
+    // Chức năng xóa sản phẩm khỏi giỏ hàng
+    public void removeCratItem(String userId, Long itemId){
+        CartItem cartItem = getValidCartItem(userId, itemId);
+        cartItemRepository.delete(cartItem);
+    }
 }
