@@ -1,0 +1,24 @@
+server:
+  port: 8088
+  servlet:
+    context-path: /order
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: "jdbc:postgresql://localhost:5434/order_db"
+    driver-class-name: "org.postgresql.Driver"
+    username: root
+    password: rootpassword
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    # Thêm dòng này ?? t?t c?nh báo OSIV (tính n?ng này n?u trên mt production
+    # s? gây t?n ram và gi? k?t n?i db không c?n thi?t v?y lên s? dùng false ?? t?t)
+    open-in-view: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/HBvibe_Web

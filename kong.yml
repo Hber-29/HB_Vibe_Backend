@@ -192,6 +192,32 @@ services:
             config:
               claims_to_verify:
                 - exp
+
+
+  # ==========================================
+  # 9. ORDER SERVICE (Backend Spring Boot)
+  # ==========================================
+  - name: hb-order-service
+    url: http://host.docker.internal:8087
+    routes:
+      - name: public-order-route
+        paths:
+          - /order/api/v1/orders
+        methods:
+          - GET
+
+        strip_path: false
+
+      - name: private-order-route
+        paths:
+          - /cart/api/v1/orders
+
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
 # ==========================================
 #  CẤU HÌNH CHÌA KHÓA CÔNG KHAI (PUBLIC KEY)
 # ==========================================
