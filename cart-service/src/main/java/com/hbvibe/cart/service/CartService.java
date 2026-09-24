@@ -6,8 +6,6 @@ import com.hbvibe.cart.dto.request.AddToCartRequest;
 import com.hbvibe.cart.dto.response.*;
 import com.hbvibe.cart.entity.Cart;
 import com.hbvibe.cart.entity.CartItem;
-import com.hbvibe.cart.exception.AppException;
-import com.hbvibe.cart.exception.ErrorCode;
 import com.hbvibe.cart.repository.CartItemRepository;
 import com.hbvibe.cart.repository.CartRepository;
 import lombok.AccessLevel;
@@ -202,6 +200,8 @@ public class CartService {
         if(currentItem.getProductVariantId().equals(newVariantId)){
             return;
         }
+        //lấy thông tin biến thể mới
+        VariantForCartResponse newVariantInfo = productServiceClient.getVariantInfo(newVariantId).getResult();
 
         Long cartId = currentItem.getCart().getId();
         // tìm xem trong giở hàng có tồn tại sản phẩm giống sản phẩm hiện tại sau khi sửa size và color không ?
@@ -215,6 +215,8 @@ public class CartService {
             if(currentItem.getIsSelected()){
                 targetItem.setIsSelected(true);
             }
+            // thay đổi giá theo biến thể mới
+            targetItem.setPrice(newVariantInfo.getPrice());
             // xóa cái cũ đi
             cartItemRepository.delete(currentItem);
             cartItemRepository.save(targetItem);
@@ -222,6 +224,7 @@ public class CartService {
         }else {
             // nếu không có sản phẩm nào tồn tại thì sẽ thay newVariantId vào sản phẩm đó
             currentItem.setProductVariantId(newVariantId);
+            currentItem.setPrice(newVariantInfo.getPrice());
             cartItemRepository.save(currentItem);
         }
     }
@@ -230,5 +233,28 @@ public class CartService {
     public void removeCratItem(String userId, Long itemId){
         CartItem cartItem = getValidCartItem(userId, itemId);
         cartItemRepository.delete(cartItem);
+    }
+    // chức năng tính tổng sản phẩm trong giỏ hàng để hiện thi ra UX
+    public Integer getCartCount(String userId){
+        return cartItemRepository.countTotalItemsInCart(userId);
+    }
+
+    // Các API nội bộ để dùng cho order-service
+    public List<CartItemResponse> getSelectedCartItems (String userId){
+        List<CartItem> selectedItem = cartItemRepository.findSelectedItemsByUserId(userId);
+
+        return selectedItem.stream()
+                .map(item -> {
+                    VariantForCartResponse variantInfo = productServiceClient
+                            .getVariantInfo(item.getProductVariantId()).getResult();
+                    return CartItemResponse.builder()
+                            .id(item.getId())
+                            .productVariantId(item.getProductVariantId())
+                            .quantity(item.getQuantity())
+                            .isSelected(item.getIsSelected())
+                            .price(variantInfo.getPrice())
+                            .build();
+                }).toList();
+
     }
 }

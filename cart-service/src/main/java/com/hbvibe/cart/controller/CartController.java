@@ -15,7 +15,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.function.EntityResponse;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -93,6 +94,26 @@ public class CartController {
         cartService.removeCratItem(jwt.getName(), itemId);
         return ApiResponse.<String>builder()
                 .message("Đã xóa sản phẩm thành công")
+                .build();
+    }
+    @GetMapping("/count")
+    public ApiResponse<Integer> getCartCount(JwtAuthenticationToken jwt){
+        Integer count = cartService.getCartCount(jwt.getName());
+        return ApiResponse.<Integer>builder()
+                .message("Đã tính tổng số lượng sản phẩm trong giỏ hàng thành công !")
+                .result(count)
+                .build();
+    }
+
+    // CÁC API NỘI BỘ PHỤC VỤ CHO ORDER-SERVICE
+
+    @GetMapping("/internal")
+    public ApiResponse<List<CartItemResponse>> getSelectedCartItems (JwtAuthenticationToken jwt){
+        List<CartItemResponse>  selectedItem = cartService.getSelectedCartItems(jwt.getName());
+
+        return ApiResponse.<List<CartItemResponse>>builder()
+                .message("Lấy thành công các sản phẩm để đặt hàng")
+                .result(selectedItem)
                 .build();
     }
 }
